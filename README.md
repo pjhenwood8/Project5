@@ -10,7 +10,7 @@ Alimzhan Sultanov was responsible for submitting the code
 
 Menu.java is main class of the project. There you will be able to log in with existing account, create
 a new account, or exit. Once logged in, the user will be able to write messages, edit them, and delete them.
-Furthermore, users will also be able view statistics of those messages, change the password, and email of 
+Furthermore, users will also be able to view statistics of those messages, change the password, and email of 
 the account.
 
 Message.java is file for managing messages from the messages.csv file. Message.java allows us to convert
