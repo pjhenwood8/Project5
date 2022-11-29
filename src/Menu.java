@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.io.*;
 import java.util.*;
 
@@ -67,6 +68,37 @@ public class Menu {
                 }
             }
             writeUsers("login.csv",users);          // Updates login.csv file, after finishing the logging in process, in case if new users are created
+            int numOfBuyers = 0;
+            int numOfSellers = 0;
+            for (User u : users) {
+                if (u instanceof Buyer) {
+                    numOfBuyers++;
+                } else if (u instanceof Seller) {
+                    numOfSellers++;
+                }
+            }
+            String[] buyers = new String[numOfBuyers];
+            int n = 0;
+            for (User u : users) {
+                if (u instanceof Buyer) {
+                    buyers[n] = u.getUsername();
+                    n++;
+                }
+            }
+            String[] sellers = new String[numOfBuyers];
+            n = 0;
+            for (User u : users) {
+                if (u instanceof Seller) {
+                    sellers[n] = u.getUsername();
+                    n++;
+                }
+            }
+            String[] userArr = new String[users.size()];
+            n = 0;
+            for (User u : users) {
+                userArr[n] = u.getUsername();
+                n++;
+            }
             while (loggedIn) {
                 if (currUser != null) {
                     try {
@@ -79,11 +111,14 @@ public class Menu {
                         0) Exit is to log off from the program
                          */
                         System.out.println("[1] Messages\n[2] Statistics\n[3] Account\n[0] Exit");
-                        int choice = scanner.nextInt();
-                        scanner.nextLine();
+                        String[] options = {"Messages", "Statistics", "Account", "Exit"};
+                        int choice = JOptionPane.showOptionDialog(null, "Select an option to proceed", "Main Menu",
+                                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[3]);
+                        //int choice = scanner.nextInt();
+                        //scanner.nextLine();
                         switch (choice) {
-                            case 1:                     // If user chooses to Message another person
-                                System.out.printf("%s - Message Log%n", currUser.getUsername());
+                            case 0:                     // If user chooses to Message another person
+                                String title = String.format("%s - Message Log%n", currUser.getUsername());
                                 System.out.println("--------------");
                                 if (currUser instanceof Seller) {                     //If user is Seller then this part of the code will run for him in the message section
                                     while (true) {
@@ -94,30 +129,33 @@ public class Menu {
                                         related to the user are being used.
                                         */
                                         String[] listOfUsers = parseUsers(user);
-                                        for (int i = 0; i < listOfUsers.length; i++) {
-                                            System.out.printf("[%d] %s%n", i + 1, listOfUsers[i]);          // Displays every user in the listOfUsers list
+                                        options = new String[listOfUsers.length + 2];
+                                        options[0] = "Start new dialog";
+                                        for (int i = 1; i < listOfUsers.length + 1; i++) {
+                                            options[i] = listOfUsers[i - 1];
                                         }
-                                        System.out.printf("[%d] %s%n", 0, "Start new dialog");           // We provide an option to start new dialog
-                                        System.out.printf("[%d] %s%n", -1, "Exit");                      // We provide an option to exit the messages part of the program, to view statistics or change account settings
-                                        int receiveUser = Integer.parseInt(scanner.nextLine());          // He makes the choice
-                                        if (receiveUser == -1) {
+                                        options[options.length - 1] = "Exit";
+                                        int receiveUser = JOptionPane.showOptionDialog(null,
+                                                "Select user to view messages or start a dialog with a new user",
+                                                title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+                                                options, options[options.length - 1]);
+                                        if (receiveUser == -1 || receiveUser == options.length - 1) {
                                             break;                                          // If user chooses to exit, we break the infinite loop, and user is able to choose statistics or account settings
                                         }
                                         if (receiveUser == 0) {                                          // dialog with new user
                                             System.out.println("List of Available Buyers to Message: ");
-                                            for (User u : users) {
-                                                if (u instanceof Buyer) {
-                                                    System.out.println(u.getUsername());
-                                                }
-                                            }
                                             System.out.println();
                                             System.out.println("Enter name of user:");
-                                            String newUser = scanner.nextLine();         // Enter name of the new user
+                                            String newUser = (String) JOptionPane.showInputDialog(null, "Select buyer to message",
+                                                    title, JOptionPane.QUESTION_MESSAGE, null, buyers,
+                                                    buyers[0]);         // Enter name of the new user
                                             boolean alreadyMessaged = false;
                                             for (String u : listOfUsers) {
                                                 if (u.equals(newUser)) {
                                                     alreadyMessaged = true;                 // if you already messaged the user before, it will show this message that you already messaged him before
                                                     System.out.println("You already messaged this user");
+                                                    JOptionPane.showMessageDialog(null, "YOu already messaged this " +
+                                                            "user!", title, JOptionPane.ERROR_MESSAGE, null);
                                                 }
                                             }
                                             boolean flag = true;           // This flag is responsible for identifying if sender and receiver are the same type
@@ -128,26 +166,37 @@ public class Menu {
                                                     flag1 = false;          // flag1 = false; means that user to which you are trying to text indeed exists
                                                     if (value instanceof Seller) {
                                                         System.out.println("You can't write to Seller, because you are Seller yourself");
+                                                        JOptionPane.showMessageDialog(null, "You can't write to " +
+                                                                "Seller, because you are Seller yourself", title, JOptionPane.ERROR_MESSAGE, null);
                                                         flag = false;       // means that user to which you are trying to text is also an instance of Seller, which should be possible
                                                                             // you should only be able to text Buyers as a Seller
                                                     } else if (currUser.getBlockedUsers().contains(value) || value.getBlockedUsers().contains(currUser)) {
                                                         System.out.println("You can't write to this user because they are blocked");
-                                                        flag2 = false;      // flag2 = false; means that neither of you blocked each other
+                                                        JOptionPane.showMessageDialog(null, "You can't write to this " +
+                                                                "user because they are blocked", title, JOptionPane.ERROR_MESSAGE, null);
+                                                        flag2 = false;      // flag2 = false; means that one user blocked the other
                                                     }
                                                 }
                                             }
-                                            if (flag1) {     // if flag1 is true, user does NOT exist
-                                                System.out.println("USER DOES NOT EXIST");
-                                            } else if (flag && flag2 && !alreadyMessaged) {     // this code runs if// user exists, user is Buyer, you didn't block each other
+                                            if (flag && flag2 && !alreadyMessaged) {     // this code runs if
+                                                                                                // user exists, user is Buyer, you didn't block each other
                                                 System.out.println("Write your hello message first!");
-                                                String mes = scanner.nextLine();               // user enters the message he would want to send to new user
+                                                String mes = JOptionPane.showInputDialog(null, "Write your hello message first!",
+                                                        title, JOptionPane.PLAIN_MESSAGE);               // user enters the message he would want to send to new user
                                                 ArrayList<Message> temp = user.getMessages();  // creates new ArrayList with user messages
                                                 temp.add(new Message(user.getUsername(), newUser, mes));    // adds new message to that ArrayList
                                                 user.setMessages(temp);                        // updates the messages field on the user
                                                 messageHistory = parseMessageHistory(user, newUser);     // after the messages field was updated, we update the messageHistory and print that out
-                                                for (Message message : messageHistory) {
+                                                /*for (Message message : messageHistory) {
                                                     System.out.print(message.toString());                     //we print their message history
+                                                }*/
+                                                StringBuilder messageHist = new StringBuilder(String.format("Message " +
+                                                        "History: %s - %s%n", user.getUsername(), newUser));
+                                                for (Message message : messageHistory) {
+                                                    messageHist.append(message.toString());
                                                 }
+                                                JOptionPane.showMessageDialog(null, messageHist.toString(), title,
+                                                        JOptionPane.INFORMATION_MESSAGE);
                                             }
                                         } else if (receiveUser >= 1) {           // if user doesn't choose to start new dialog or exit the program
                                                                                  // receiveUser is to view conversations you had before with other users
@@ -550,7 +599,7 @@ public class Menu {
                                     }
                                 }
                                 break;
-                            case 2:                              // this is Statistics part of the code
+                            case 1:                              // this is Statistics part of the code
                                 while (true) {
                                     System.out.printf("%s - Statistics%n", currUser.getUsername());
                                     System.out.println("--------------");
@@ -757,7 +806,7 @@ public class Menu {
 
                                 }
                                 break;
-                            case 3:
+                            case 2:
                                 // options for the user's account
                                 do {
                                     System.out.printf("%s - Account Details%n", currUser.getUsername());
@@ -1274,6 +1323,7 @@ public static User login(Scanner scanner) {
                     e.printStackTrace();
                 }
             }
+
         }
         for (String line : lines) {
             if (!line.isEmpty()) {
