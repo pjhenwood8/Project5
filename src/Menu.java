@@ -138,8 +138,7 @@ public class Menu {
                                             }
                                             if (flag1) {     // if flag1 is true, user does NOT exist
                                                 System.out.println("USER DOES NOT EXIST");
-                                            } else if (flag && flag2 && !alreadyMessaged) {     // this code runs if
-                                                                                                // user exists, user is Buyer, you didn't block each other
+                                            } else if (flag && flag2 && !alreadyMessaged) {     // this code runs if// user exists, user is Buyer, you didn't block each other
                                                 System.out.println("Write your hello message first!");
                                                 String mes = scanner.nextLine();               // user enters the message he would want to send to new user
                                                 ArrayList<Message> temp = user.getMessages();  // creates new ArrayList with user messages
@@ -1275,7 +1274,6 @@ public static User login(Scanner scanner) {
                     e.printStackTrace();
                 }
             }
-
         }
         for (String line : lines) {
             if (!line.isEmpty()) {
