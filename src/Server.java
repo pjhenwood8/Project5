@@ -23,7 +23,7 @@ public class Server {
                     if (choice == 1) {
                         String email = reader.readLine();
                         String password = reader.readLine();
-
+                        login(email,password);
                     }
                     else if (choice == 2) {
 
@@ -205,5 +205,24 @@ public class Server {
         return stores;
     }
 
-
+    public static boolean login(String email, String password) {
+        ArrayList<ArrayList<String>> userList = new ArrayList<>();
+        try {
+            BufferedReader bfr = new BufferedReader(new FileReader("login.csv"));
+            String line = bfr.readLine();
+            while (line != null) {
+                userList.add(customSplitSpecific(line));
+                line = bfr.readLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        for (ArrayList<String> strings : userList) {
+            if (strings.get(1).equals(email)) {
+                if (strings.get(2).equals(password))
+                    return true;
+            }
+        }
+        return false;
+    }
 }
