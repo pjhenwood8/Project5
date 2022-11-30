@@ -47,7 +47,7 @@ public class Seller extends User {
         return newStores;
     }
 
-    public void viewStatistics(boolean alphabetical) throws IOException {
+    public String viewStatistics(boolean alphabetical) throws IOException {
         FileReader fr = new FileReader("messages.csv");
         BufferedReader br = new BufferedReader(fr);
         ArrayList<String> messages = new ArrayList<>();
@@ -160,6 +160,8 @@ public class Seller extends User {
             }
         }
         System.out.println("Most frequently used words: " + wordOne + ", " + wordTwo + ", and "  + wordThree);
+        return "";
     }
+
 
 }

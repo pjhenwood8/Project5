@@ -102,7 +102,6 @@ public class Menu {
             while (loggedIn) {
                 if (currUser != null) {
                     try {
-                        System.out.println("--Main Menu--");
                         /*
                         When user logs in, he is presented with 4 options:
                         1) Messages is the part of the program where user is able to send messages to either Customers or Sellers, depending on who is User itself
@@ -110,7 +109,6 @@ public class Menu {
                         3) Account is for changing your password or email
                         0) Exit is to log off from the program
                          */
-                        System.out.println("[1] Messages\n[2] Statistics\n[3] Account\n[0] Exit");
                         String[] options = {"Messages", "Statistics", "Account", "Exit"};
                         int choice = JOptionPane.showOptionDialog(null, "Select an option to proceed", "Main Menu",
                                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[3]);
@@ -137,11 +135,8 @@ public class Menu {
                                                 "Select user to view messages or start a dialog with a new user",
                                                 title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
                                                 options, options[options.length - 1]);
-                                        if (receiveUser == 0) {                                          // dialog
-                                            // with new user
-                                            System.out.println("List of Available Buyers to Message: ");
-                                            System.out.println();
-                                            System.out.println("Enter name of user:");
+                                        if (receiveUser == 0) {
+                                            // dialog with new user
                                             String newUser = (String) JOptionPane.showInputDialog(null, "Select buyer to message",
                                                     title, JOptionPane.QUESTION_MESSAGE, null, buyers,
                                                     buyers[0]);         // Enter name of the new user
@@ -172,24 +167,18 @@ public class Menu {
                                                 }
                                             }
                                             if (flag && flag2 && !alreadyMessaged) {     // this code runs if
-                                                                                                // user exists, user is Buyer, you didn't block each other
-                                                System.out.println("Write your hello message first!");
+                                                // user exists, user is Buyer, you didn't block each other
                                                 String mes = JOptionPane.showInputDialog(null, "Write your hello message first!",
                                                         title, JOptionPane.PLAIN_MESSAGE);               // user enters the message he would want to send to new user
                                                 ArrayList<Message> temp = user.getMessages();  // creates new ArrayList with user messages
                                                 temp.add(new Message(user.getUsername(), newUser, mes));    // adds new message to that ArrayList
                                                 user.setMessages(temp);                        // updates the messages field on the user
                                                 messageHistory = parseMessageHistory(user, newUser);     // after the messages field was updated, we update the messageHistory and print that out
-                                                /*for (Message message : messageHistory) {
-                                                    System.out.print(message.toString());                     //we print their message history
-                                                }*/
                                                 messageHist = new StringBuilder(String.format("Message " +
                                                         "History: %s - %s%n", user.getUsername(), newUser));
                                                 for (Message message : messageHistory) {
                                                     messageHist.append(message.toString());
                                                 }
-                                                //JOptionPane.showMessageDialog(null, messageHist.toString(), title,
-                                                        //JOptionPane.INFORMATION_MESSAGE);
                                             }
                                         } else if (receiveUser >= 1 && receiveUser != options.length - 1) {           // if user doesn't choose to start
                                             // new dialog or exit the program
@@ -205,14 +194,11 @@ public class Menu {
                                                         String ansMes = value.getMessage().replaceAll("\\\\n", "\n");  // it replaces signs of new lines, to actual new lines
                                                         String ans = String.format("%s   (%s -> %s)%n%s%n", value.getTime(), value.getSender(), value.getReceiver(), ansMes);  // same implementation as in Message class, but with specific message string
                                                         messageHist.append(ans);
-                                                        //System.out.print(ans);
                                                     } else
                                                         messageHist.append(value);
-                                                        //System.out.print(value);     // if it's regular one line
-                                                    // message, then it uses basic toString() method of Message class
+                                                    // if it's regular one line message,
+                                                    // then it uses basic toString() method of Message class
                                                 }
-                                                //JOptionPane.showMessageDialog(null, messageHist.toString(), title,
-                                                        //JOptionPane.PLAIN_MESSAGE);
                                                 /* User is presented with 5 options of what they can in the Message part with specific user
                                                    1) Write new message
                                                    when writing new message you are presented with 2 options
@@ -244,14 +230,12 @@ public class Menu {
                                                             JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
                                                             null, options, options[0]);
                                                     if (fileOrText == 0) {       // regular message
-                                                        System.out.println("Enter message: ");
                                                         String mes = JOptionPane.showInputDialog(null, "Write your message: ",
                                                                 title, JOptionPane.PLAIN_MESSAGE);
                                                         ArrayList<Message> temp = user.getMessages();
                                                         temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
                                                         user.setMessages(temp);        // updates the messages field of the user to the renewed messageHistory
                                                     } else if (fileOrText == 1) {      //uploading files
-                                                        System.out.println("Enter name of txt file: ");
                                                         String fileName = JOptionPane.showInputDialog(null, "Enter " +
                                                                         "name of txt file: ", title, JOptionPane.PLAIN_MESSAGE);    // enters name of the file
                                                         String mes = "";
@@ -298,7 +282,6 @@ public class Menu {
                                                         for (int j = 0; j < i; j++) {
                                                             messageNums[j] = j + 1;
                                                         }
-                                                        System.out.println("Choose message to edit");
                                                         choice = (int) JOptionPane.showInputDialog(null,
                                                                 messageHist.toString() + "\nSelect message to edit",
                                                                 title, JOptionPane.QUESTION_MESSAGE, null, messageNums,
@@ -329,7 +312,7 @@ public class Menu {
                                                             user.getUsername(), listOfUsers[receiveUser - 1]));
                                                     while (i < messageHistory.size()) {
                                                         userIsSender.add(messageHistory.get(i));              // adding every message into the userIsSender arraylist
-                                                        System.out.printf("[%d] " + messageHistory.get(i).toString(), i + 1);             // printing every message with a number next to it
+                                                        // printing every message with a number next to it
                                                         messageHist.append(String.format("[%d] " + messageHistory.get(i).toString(), i + 1));
                                                         i++;
                                                     }
@@ -338,7 +321,6 @@ public class Menu {
                                                         for (int j = 0; j < i; j++) {
                                                             messageNums[j] = j + 1;
                                                         }
-                                                        System.out.println("Choose message to delete");
                                                         choice = (int) JOptionPane.showInputDialog(null,
                                                                 messageHist.toString() + "\nSelect message to delete",
                                                                 title, JOptionPane.QUESTION_MESSAGE, null, messageNums,
@@ -363,7 +345,6 @@ public class Menu {
                                                                 title, JOptionPane.ERROR_MESSAGE);
                                                     }
                                                 } else if (optionChoice == 3) {            // exporting messages
-                                                    System.out.println("Enter name of the file to which you want to export your message history");
                                                     String fileName = JOptionPane.showInputDialog(null, "Enter " +
                                                             "name of the file to which you want to export your " +
                                                             "message history", title, JOptionPane.QUESTION_MESSAGE); // enters the file name
@@ -395,7 +376,6 @@ public class Menu {
                                     2) Or you write to a specific seller, just like you do message with a normal person
                                     0) Exits to the menu
                                     */
-                                    System.out.println("[1] Write to store\n[2] Write to seller\n[0] Exit");
                                     options = new String[]{"Write to Store", "Write to Seller", "Exit"};
                                     int makeChoice =
                                             JOptionPane.showOptionDialog(null, "Select an option to proceed", title,
@@ -403,7 +383,6 @@ public class Menu {
                                                     options, options[2]);
                                     // user chooses the option
                                     if (makeChoice == 0) {           // user chooses to text the store
-                                        System.out.println("List of Stores:");
                                         StringBuilder listStores = new StringBuilder(String.format("List of Stores: " +
                                                 "%n----------------------------------------%n"));
                                         String[] storeArr = new String[stores.size()];
@@ -411,7 +390,6 @@ public class Menu {
                                             storeArr[i] = stores.get(i).getStoreName();
                                             listStores.append(stores.get(i).getStoreName());
                                         }
-                                        System.out.println("Enter name of the store");
                                         String store =
                                                 (String) JOptionPane.showInputDialog(null, "Select store to message", title,
                                                         JOptionPane.PLAIN_MESSAGE,null, storeArr, storeArr[0]);
@@ -423,7 +401,6 @@ public class Menu {
                                                 for (int j = 0; j < ((Seller) value).getStores().size(); j++) {
                                                     if (((Seller) value).getStores().get(j).equals(store)) {          // if store belongs to the Seller, then Seller's object is saved as "value" variable
                                                         flag = true;
-                                                        System.out.println("Enter message you want to send to that store");
                                                         String msg = JOptionPane.showInputDialog(null, "Write your message: ",
                                                                 title, JOptionPane.PLAIN_MESSAGE);           // main user writes the message to the store
                                                         ArrayList<Message> temp = currUser.getMessages();
@@ -450,17 +427,6 @@ public class Menu {
                                                                 writeStores("stores.csv", stores);
                                                             }
                                                         }
-                                                        /*ArrayList<Message> messageHistory = parseMessageHistory(user
-                                                                , value.getUsername());          // we update our message history and print that out
-                                                        for (Message message : messageHistory) {
-                                                            if (message.getMessage().contains("\\n")) {        // if message and not a single line messages
-                                                                String ansMes = message.getMessage().replaceAll("\\\\n", "\n");
-                                                                String ans = String.format("%s   (%s -> %s)%n%s%n", message.getTime(), message.getSender(), message.getReceiver(), ansMes);
-                                                                System.out.print(ans);
-                                                            } else {
-                                                                System.out.print(message.toString());       // if message is a single line message
-                                                            }
-                                                        }*/
                                                     }
                                                 }
                                             }
@@ -486,14 +452,6 @@ public class Menu {
                                                     title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
                                                     options, options[options.length - 1]);
                                             if (receiveUser == 0) {                                          // dialog with new user
-                                                System.out.println("List of Available Sellers to Message: ");
-                                                for (User u : users) {
-                                                    if (u instanceof Seller) {
-                                                        System.out.println(u.getUsername());
-                                                    }
-                                                }
-                                                System.out.println();
-                                                System.out.println("Enter name of user:");
                                                 String newUser = (String) JOptionPane.showInputDialog(null, "Select buyer to message",
                                                         title, JOptionPane.QUESTION_MESSAGE, null, sellers,
                                                         sellers[0]);         // Enter name of the new user
@@ -529,25 +487,6 @@ public class Menu {
                                                     temp.add(new Message(user.getUsername(), newUser, mes));
                                                     user.setMessages(temp);
                                                     messageHistory = parseMessageHistory(user, newUser);
-                                                    /*for (Message message : messageHistory) {
-                                                        if (message.getMessage().contains("\\n")) {
-                                                            String ansMes = message.getMessage().replaceAll("\\\\n", "\n");
-                                                            String ans = String.format("%s   (%s -> %s)%n%s%n", message.getTime(), message.getSender(), message.getReceiver(), ansMes);
-                                                            System.out.print(ans);
-                                                        } else
-                                                            System.out.print(message.toString());
-                                                    }*/
-                                                    /*messageHist = new StringBuilder(String.format("Message " +
-                                                            "History: %s - %s%n", user.getUsername(), newUser));
-                                                    for (Message message : messageHistory) {
-                                                        if (message.getMessage().contains("\\n")) {
-                                                            String ansMes = message.getMessage().replaceAll("\\\\n", "\n");
-                                                            String ans = String.format("%s   (%s -> %s)%n%s%n", message.getTime(), message.getSender(), message.getReceiver(), ansMes);
-                                                            messageHist.append(ans);
-                                                        } else {
-                                                            messageHist.append(message.toString());
-                                                        }
-                                                    }*/
                                                 }
                                             } else if (receiveUser >= 1 && receiveUser != options.length - 1) {
                                                 // if user chooses to continue conversation with the user he had conversation before
@@ -568,9 +507,6 @@ public class Menu {
                                                     /*
                                                      read comments on the line 166, identical features
                                                     */
-                                                    System.out.println("[1] Write message                         [2] Edit message");
-                                                    System.out.println("[3] Delete message                        [0] Exit");
-                                                    System.out.println("[-1] Export this message history to csv file");
                                                     options = new String[]{"Write Message", "Edit Message", "Delete " +
                                                             "Message", "Export History to CSV", "Exit"};
                                                     int optionChoice = JOptionPane.showOptionDialog(null,
@@ -584,7 +520,6 @@ public class Menu {
                                                                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
                                                                 null, options, options[0]);
                                                         if (fileOrText == 1) {              // if user sends regular message
-                                                            System.out.println("Enter message: ");
                                                             String mes = JOptionPane.showInputDialog(null, "Write your message: ",
                                                                     title, JOptionPane.PLAIN_MESSAGE);
                                                             ArrayList<Message> temp = user.getMessages();
@@ -592,7 +527,6 @@ public class Menu {
                                                             user.setMessages(temp);
                                                         }
                                                         else if (fileOrText == 2) {            // if user sends txt file as a message
-                                                            System.out.println("Enter name of txt file: ");
                                                             String fileName = JOptionPane.showInputDialog(null, "Enter " +
                                                                     "name of txt file: ", title, JOptionPane.PLAIN_MESSAGE);    // enters name of the file
                                                             String mes = "";
@@ -637,7 +571,6 @@ public class Menu {
                                                             for (int j = 0; j < i; j++) {
                                                                 messageNums[j] = j + 1;
                                                             }
-                                                            System.out.println("Choose message to edit");
                                                             choice = (int) JOptionPane.showInputDialog(null,
                                                                     messageHist.toString() + "\nSelect message to edit",
                                                                     title, JOptionPane.QUESTION_MESSAGE, null, messageNums,
@@ -667,7 +600,7 @@ public class Menu {
                                                                 user.getUsername(), listOfUsers[receiveUser - 1]));
                                                         while (i < messageHistory.size()) {
                                                             userIsSender.add(messageHistory.get(i));              // adding every message into the userIsSender arraylist
-                                                            System.out.printf("[%d] " + messageHistory.get(i).toString(), i + 1);             // printing every message with a number next to it
+                                                            // printing every message with a number next to it
                                                             messageHist.append(String.format("[%d] " + messageHistory.get(i).toString(), i + 1));
                                                             i++;
                                                         }
@@ -676,7 +609,6 @@ public class Menu {
                                                             for (int j = 0; j < i; j++) {
                                                                 messageNums[j] = j + 1;
                                                             }
-                                                            System.out.println("Choose message to delete");
                                                             choice = (int) JOptionPane.showInputDialog(null,
                                                                     messageHist.toString() + "\nSelect message to delete",
                                                                     title, JOptionPane.QUESTION_MESSAGE, null, messageNums,
@@ -701,7 +633,6 @@ public class Menu {
                                                                     title, JOptionPane.ERROR_MESSAGE);
                                                         }
                                                     } else if (optionChoice == 3) {            // if he chooses to export messages to the csv file
-                                                        System.out.println("Enter name of the file to which you want to export your message history");
                                                         String fileName = JOptionPane.showInputDialog(null, "Enter " +
                                                                 "name of the file to which you want to export your " +
                                                                 "message history", title, JOptionPane.QUESTION_MESSAGE); // enters the file name
@@ -730,21 +661,32 @@ public class Menu {
                                     }
                                 }
                                 break;
-                            case 1:                              // this is Statistics part of the code
+                            case 1:
+                                // this is Statistics part of the code
                                 while (true) {
-                                    System.out.printf("%s - Statistics%n", currUser.getUsername());
-                                    System.out.println("--------------");
+                                    title = String.format("%s - Statistics%n", currUser.getUsername());
                                     /*
                                     User is presented with 4 options
                                     */
-                                    System.out.println("Select in which order you want to sort\n[1] Alphabetical\n[2] Reverse alphabetical\n[3] Most common words\n[0] Exit");
-                                    int alphabetical = Integer.parseInt(scanner.nextLine()); // Assigns alphabetical to user choice as an int.
+                                    options = new String[]{"Alphabetical", "Reverse Alphabetical", "Most Common " +
+                                            "Words", "Exit"};
+                                    int alphabetical =
+                                            JOptionPane.showOptionDialog(null, "Select option to show statistics",
+                                                    title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+                                                    null, options, options[3]); //
+                                    // Assigns alphabetical to user choice as an int.
                                     if (currUser instanceof Buyer) {
-                                        if (alphabetical == 1)
-                                            currUser.viewStatistics(true); // shows user statistics in alphabetical order
-                                        else if (alphabetical == 2)
-                                            currUser.viewStatistics(false); // shows user statistics in reverse alphabetical order
-                                        else if (alphabetical == 3) {
+                                        if (alphabetical == 0) {
+                                            String stats = ((Buyer) currUser).viewStatistics(true);
+                                            // shows user statistics in alphabetical order
+                                            JOptionPane.showMessageDialog(null, stats, title, JOptionPane.INFORMATION_MESSAGE);
+                                        }
+                                        else if (alphabetical == 1) {
+                                            String stats = ((Buyer) currUser).viewStatistics(false);
+                                            // shows user statistics in reverse alphabetical order
+                                            JOptionPane.showMessageDialog(null, stats, title, JOptionPane.INFORMATION_MESSAGE);
+                                        }
+                                        else if (alphabetical == 2) {
                                             ArrayList<Message> allMessages = new ArrayList<>();
                                             String word = "";
                                             String secondWord = "";
@@ -822,12 +764,15 @@ public class Menu {
                                                 }
                                             }
                                             // Prints the first, second, and third most commonly used words
-                                            System.out.println("The most common word in Messages is " + word + " said " + maxCount + " times");
-                                            System.out.println("The second common word in Messages is " + secondWord + " said " + secondCount + " times");
-                                            System.out.println("The third most common word in Messages is " + thirdWord + " said " + thirdCount + " times");
-                                            System.out.println();
-                                        } else if (alphabetical == 0)
+                                            String commonWords = "The most common word in Messages is " + word + " " +
+                                                    "said " + maxCount + " times\n" + "The second most common word in " +
+                                                    "Messages is " + secondWord + " said " + secondCount + " times\n" +
+                                                    "The third most common word in Messages is " + thirdWord + " said "
+                                                    + thirdCount + " times";
+                                            JOptionPane.showMessageDialog(null, commonWords, title, JOptionPane.INFORMATION_MESSAGE);
+                                        } else {
                                             break;
+                                        }
                                     } else if (currUser instanceof Seller) {
                                         Map<String, Integer> sentMessages = new HashMap<>();
                                         for (User u : users) { // Iterates through every user
@@ -841,17 +786,24 @@ public class Menu {
                                         }
                                         ArrayList<String> sortedSentMessages = new ArrayList<>(sentMessages.keySet());
                                         Collections.sort(sortedSentMessages); // sorts users
-                                        if (alphabetical == 1) {
+                                        StringBuilder sortMessages = new StringBuilder();
+                                        if (alphabetical == 0) {
                                             for (String s : sortedSentMessages) {
-                                                System.out.printf("%s sent %d messages%n", s, sentMessages.get(s)); // writes the user and number of messages they sent alphabetically
+                                                // writes the user and number of messages they sent alphabetically
+                                                sortMessages.append(String.format("%s sent %d messages%n", s,
+                                                        sentMessages.get(s)));
                                             }
-                                        } else if (alphabetical == 2) {
+                                            JOptionPane.showMessageDialog(null, sortMessages.toString(), title,
+                                                    JOptionPane.INFORMATION_MESSAGE);
+                                        } else if (alphabetical == 1) {
                                             for (int j = sortedSentMessages.size() - 1; j >= 0; j--) {
-                                                System.out.printf("%s sent %d messages%n", sortedSentMessages.get(j), sentMessages.get(sortedSentMessages.get(j))); // // writes the user and number of messages they sent reverse alphabetically
+                                                // writes the user and number of messages they sent reverse alphabetically
+                                                sortMessages.append(String.format("%s sent %d messages%n",
+                                                        sortedSentMessages.get(j), sentMessages.get(sortedSentMessages.get(j))));
                                             }
-                                        } else if (alphabetical == 0) {
-                                            break;
-                                        } else if (alphabetical == 3) {
+                                            JOptionPane.showMessageDialog(null, sortMessages.toString(), title,
+                                                    JOptionPane.INFORMATION_MESSAGE);
+                                        } else if (alphabetical == 2) {
                                             ArrayList<Message> allMessages = new ArrayList<>();
                                             String word = "";
                                             String secondWord = "";
@@ -928,10 +880,15 @@ public class Menu {
                                                     thirdWord = new2WordArr[k];
                                                 }
                                             }
-                                            System.out.println("The most common word in Messages is " + word + " said " + maxCount + " times");
-                                            System.out.println("The second common word in Messages is " + secondWord + " said " + secondCount + " times");
-                                            System.out.println("The third most common word in Messages is " + thirdWord + " said " + thirdCount + " times");
-                                            System.out.println();
+                                            // Prints the first, second, and third most commonly used words
+                                            String commonWords = "The most common word in Messages is " + word + " " +
+                                                    "said " + maxCount + " times\n" + "The second most common word in " +
+                                                    "Messages is " + secondWord + " said " + secondCount + " times\n" +
+                                                    "The third most common word in Messages is " + thirdWord + " said "
+                                                    + thirdCount + " times";
+                                            JOptionPane.showMessageDialog(null, commonWords, title, JOptionPane.INFORMATION_MESSAGE);
+                                        } else {
+                                            break;
                                         }
                                     }
 

@@ -27,7 +27,7 @@ public class Buyer extends User {
         super(username, email, password, blockedUsernames);
     }
     
-    public void viewStatistics(boolean alphabetical) throws IOException {
+    public String viewStatistics(boolean alphabetical) throws IOException {
         FileReader fr = null;
         try {
             fr = new FileReader("stores.csv");
@@ -86,17 +86,19 @@ public class Buyer extends User {
         }
         //sort alphabetically
         Collections.sort(stores);
+        StringBuilder sortMessages = new StringBuilder();
         if (alphabetical == true) {
             //alphabetical
             for (int i = 0; i < stores.size(); i++) {
-                System.out.println("Store: " + stores.get(i) + " - Number of messages received: " + listOne.get(stores.get(i)));
+                sortMessages.append("Store: " + stores.get(i) + " - Number of messages received: " + listOne.get(stores.get(i)) + "\n");
             }
         } else if (alphabetical == false) {
             //reverse alphabetical
             for (int i = stores.size() - 1; i >= 0; i--) {
-                System.out.println("Store: " + stores.get(i) + " - Number of messages you've sent: " + listTwo.get(stores.get(i)));
+                sortMessages.append("Store: " + stores.get(i) + " - Number of messages received: " + listOne.get(stores.get(i)) + "\n");
             }
         }
+        return sortMessages.toString();
     }
     
 }

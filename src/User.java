@@ -83,7 +83,7 @@ public class User {
         this.messages = messages;
     }
 
-    ArrayList<Message> parseMessages() throws IOException {        // this method is responsible for cherry picking the messages that contains our user's username
+    ArrayList<Message> parseMessages() throws IOException {        // this method is responsible for cherry-picking the messages that contains our user's username
                                                                    // in either sender or receiver part of the message
         ArrayList<Message> wholeFile = readWholeFile();
 
@@ -192,8 +192,5 @@ public class User {
         return blockedUsers;
     }
 
-    // this methods main goal is to be overwritten in the child classes
-    public void viewStatistics(boolean alphabetical) throws IOException {
 
-    }
 }
