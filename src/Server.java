@@ -225,4 +225,39 @@ public class Server {
         }
         return false;
     }
+
+    public static User createAccount(String username, String email, String password, String userType) {
+        ArrayList<ArrayList<String>> existingUsers = new ArrayList<>();
+        ArrayList<String> file = new ArrayList<>();
+        try {
+            BufferedReader bfr = new BufferedReader(new FileReader("login.csv"));
+            String line = bfr.readLine();
+            while (line != null) {
+                file.add(line);
+                existingUsers.add(customSplitSpecific(line));
+                line = bfr.readLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        for (ArrayList<String> users : existingUsers) {
+            if (users.get(0).equals(username)){
+                return null;
+            }
+            if (users.get(1).equals(email)){
+                return null;
+            }
+        }
+        try {
+            PrintWriter pw = new PrintWriter(new FileOutputStream("login.csv", false));
+            for (String strings : file) {
+                pw.println(strings);
+            }
+            pw.println("\"" + username + "\"" + "," + "\"" + email + "\"" + "," + "\"" + password + "\"" + "," + "\"" + userType + "\"" + ",\"\"");
+            pw.close();
+        } catch (IOException e ) {
+            e.printStackTrace();
+        }
+        return new User(username,email,password);
+    }
 }
