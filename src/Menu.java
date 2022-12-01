@@ -1,4 +1,7 @@
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.*;
 
@@ -23,23 +26,25 @@ public class Menu {
         ArrayList<Store> stores = readStores("stores.csv", users);      // We do the same thing with the stores objects
         addBlockedUsers(users);
         while (online) {
-            System.out.println("Welcome to the Marketplace Messaging System");
-            System.out.println("--------------------------------------------");
+            String title = "Welcome to the Marketplace Messaging System!";
+            String[] options;
             boolean LoggingIn = true;
             boolean loggedIn = false;
             User user = null;
             User currUser = null;
-            System.out.println("Please enter the number corresponding with your option:");
             while (LoggingIn) {                                                  // An infinite loop that breaks when user is able to log in
-                System.out.println("[1] Login\n[2] Create Account\n[3] Exit");   // User is presented with 3 options: log in into existing acc, create new acc, or exit the program
-                response = scanner.nextLine();
-                switch (response) {
-                    case "1":                                        // If user wants to log in into existing acc, if it's successful, infinite loop breaks
+                // User is presented with 3 options: log in into existing acc, create new acc, or exit the program
+                options = new String[]{"Login", "Create Account", "Exit"};
+                int choice = JOptionPane.showOptionDialog(null, "Please select an option to proceed", title,
+                        JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[2]);
+                switch (choice) {
+                    case 0:
+                        // If user wants to log in into existing acc, if it's successful, infinite loop breaks
                         user = login(scanner);
                         if (user != null)
                             LoggingIn = false;                  // to end an infinite loop
                         break;
-                    case "2":
+                    case 1:
                         user = createAccount(scanner, "login.csv");          // After creating acc, user is already counted as logged-in user
                         if (user != null) {
                             LoggingIn = false;              // breaks infinite loop
@@ -47,18 +52,18 @@ public class Menu {
                             users.add(user);                // add user to the ArrayList of all users
                         }
                         break;
-                    case "3":                    // To exit program
-                        user = null;
+                    case 2:                    // To exit program
                         LoggingIn = false;
                         online = false;           // When online is false, program stops working
-                        break;
                     default:
-                        System.out.println("Please enter a valid input");
                         user = null;
+                        break;
                 }
             }
             if (user != null) {
                 System.out.println("Successfully logged in as " + user.getUsername());         // Confirmation message, when user is able to log in
+                JOptionPane.showMessageDialog(null, "Successfully logged in as " + user.getUsername(), "Marketplace " +
+                        "Messaging System", JOptionPane.INFORMATION_MESSAGE);
                 System.out.println();
                 for (User u : users) {
                     if (u.getUsername().equalsIgnoreCase(user.getUsername())) {
@@ -68,39 +73,40 @@ public class Menu {
                 }
             }
             writeUsers("login.csv",users);          // Updates login.csv file, after finishing the logging in process, in case if new users are created
-            int numOfBuyers = 0;
-            int numOfSellers = 0;
-            for (User u : users) {
-                if (u instanceof Buyer) {
-                    numOfBuyers++;
-                } else if (u instanceof Seller) {
-                    numOfSellers++;
-                }
-            }
-            String[] buyers = new String[numOfBuyers];
-            int n = 0;
-            for (User u : users) {
-                if (u instanceof Buyer) {
-                    buyers[n] = u.getUsername();
-                    n++;
-                }
-            }
-            String[] sellers = new String[numOfBuyers];
-            n = 0;
-            for (User u : users) {
-                if (u instanceof Seller) {
-                    sellers[n] = u.getUsername();
-                    n++;
-                }
-            }
-            String[] userArr = new String[users.size()];
-            n = 0;
-            for (User u : users) {
-                userArr[n] = u.getUsername();
-                n++;
-            }
+
             while (loggedIn) {
                 if (currUser != null) {
+                    int numOfBuyers = 0;
+                    int numOfSellers = 0;
+                    for (User u : users) {
+                        if (u instanceof Buyer) {
+                            numOfBuyers++;
+                        } else if (u instanceof Seller) {
+                            numOfSellers++;
+                        }
+                    }
+                    String[] buyers = new String[numOfBuyers];
+                    int n = 0;
+                    for (User u : users) {
+                        if (u instanceof Buyer) {
+                            buyers[n] = u.getUsername();
+                            n++;
+                        }
+                    }
+                    String[] sellers = new String[numOfSellers];
+                    n = 0;
+                    for (User u : users) {
+                        if (u instanceof Seller) {
+                            sellers[n] = u.getUsername();
+                            n++;
+                        }
+                    }
+                    String[] userArr = new String[users.size()];
+                    n = 0;
+                    for (User u : users) {
+                        userArr[n] = u.getUsername();
+                        n++;
+                    }
                     try {
                         /*
                         When user logs in, he is presented with 4 options:
@@ -109,12 +115,12 @@ public class Menu {
                         3) Account is for changing your password or email
                         0) Exit is to log off from the program
                          */
-                        String[] options = {"Messages", "Statistics", "Account", "Exit"};
+                        options = new String[]{"Messages", "Statistics", "Account", "Exit"};
                         int choice = JOptionPane.showOptionDialog(null, "Select an option to proceed", "Main Menu",
                                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[3]);
                         switch (choice) {
                             case 0:                     // If user chooses to Message another person
-                                String title = String.format("%s - Message Log%n", currUser.getUsername());
+                                title = String.format("%s - Message Log%n", currUser.getUsername());
                                 StringBuilder messageHist;
                                 if (currUser instanceof Seller) {                     //If user is Seller then this part of the code will run for him in the message section
                                     while (true) {
@@ -149,11 +155,10 @@ public class Menu {
                                                 }
                                             }
                                             boolean flag = true;           // This flag is responsible for identifying if sender and receiver are the same type
-                                            boolean flag1 = true;          // This flag is responsible for showing if user exists
+                                            // This flag is responsible for showing if user exists
                                             boolean flag2 = true;          // This flag is responsible for checking if user to which you are texting blocked you, or you blocked that user before
                                             for (User value : users) {
                                                 if (value.getUsername().equals(newUser)) {
-                                                    flag1 = false;          // flag1 = false; means that user to which you are trying to text indeed exists
                                                     if (value instanceof Seller) {
                                                         JOptionPane.showMessageDialog(null, "You can't write to " +
                                                                 "Seller, because you are Seller yourself", title, JOptionPane.ERROR_MESSAGE, null);
@@ -238,7 +243,7 @@ public class Menu {
                                                     } else if (fileOrText == 1) {      //uploading files
                                                         String fileName = JOptionPane.showInputDialog(null, "Enter " +
                                                                         "name of txt file: ", title, JOptionPane.PLAIN_MESSAGE);    // enters name of the file
-                                                        String mes = "";
+                                                        String mes;
                                                         try {
                                                             ArrayList<String> tempArr = new ArrayList<>();
                                                             BufferedReader bfr = new BufferedReader(new FileReader(fileName));
@@ -464,11 +469,10 @@ public class Menu {
                                                     }
                                                 }
                                                 boolean flag = true;
-                                                boolean flag1 = true;               // same logic as it was in the line 123, read comments there
+                                                // same logic as it was in the line 123, read comments there
                                                 boolean flag2 = true;
                                                 for (User value : users) {
                                                     if (value.getUsername().equals(newUser)) {
-                                                        flag1 = false;
                                                         if (value instanceof Buyer) {
                                                             JOptionPane.showMessageDialog(null, "You can't write to " +
                                                                     "Seller, because you are Seller yourself", title, JOptionPane.ERROR_MESSAGE, null);
@@ -486,7 +490,7 @@ public class Menu {
                                                     ArrayList<Message> temp = user.getMessages();
                                                     temp.add(new Message(user.getUsername(), newUser, mes));
                                                     user.setMessages(temp);
-                                                    messageHistory = parseMessageHistory(user, newUser);
+                                                    parseMessageHistory(user, newUser);
                                                 }
                                             } else if (receiveUser >= 1 && receiveUser != options.length - 1) {
                                                 // if user chooses to continue conversation with the user he had conversation before
@@ -529,7 +533,7 @@ public class Menu {
                                                         else if (fileOrText == 2) {            // if user sends txt file as a message
                                                             String fileName = JOptionPane.showInputDialog(null, "Enter " +
                                                                     "name of txt file: ", title, JOptionPane.PLAIN_MESSAGE);    // enters name of the file
-                                                            String mes = "";
+                                                            String mes;
                                                             ArrayList<String> tempArr = new ArrayList<>();
                                                             try {
                                                                 BufferedReader bfr = new BufferedReader(new FileReader(fileName));
@@ -1201,6 +1205,8 @@ public static User login(Scanner scanner) {
         ArrayList<String> transferList;
         boolean invEmail;
         String email, pass;
+        String title = "Login";
+
         //Add users from file to arraylist
         try {
             BufferedReader bfr = new BufferedReader(new FileReader("login.csv"));
@@ -1223,10 +1229,10 @@ public static User login(Scanner scanner) {
         }
     //Loops forever until a valid email and password are entered, or the escape sequence is ran
         while (true) {
-            System.out.println("Please enter your email:");
-            email = scanner.nextLine();
-            System.out.println("Please enter you password:");
-            pass = scanner.nextLine();
+            email = JOptionPane.showInputDialog(null, "Please enter your email:", title, JOptionPane.PLAIN_MESSAGE);
+            pass = JOptionPane.showInputDialog(null, "Please enter your password:", title,
+                    JOptionPane.PLAIN_MESSAGE);;
+
             invEmail = true;
             for (String[] user : users) {
                 if (email.equals(user[1])) {
@@ -1239,22 +1245,24 @@ public static User login(Scanner scanner) {
                     }
                 }
             }
+
             //if the email or password does not match an existing account it is printed
             if (invEmail) {
-                System.out.println("Your email was incorrect");
+                JOptionPane.showMessageDialog(null, "Your email was incorrect", "Login", JOptionPane.WARNING_MESSAGE);
             } else {
-                System.out.println("Your password was incorrect");
+                JOptionPane.showMessageDialog(null, "Your password was incorrect", "Login",
+                        JOptionPane.WARNING_MESSAGE);
             }
-            String option;
+            int option;
             do {
                 System.out.println("Would you like to try again?\n1.Yes\n2.No");
-                option = scanner.nextLine();
-                if (option.equals("2")) {
+                String[] options = new String[]{"Yes", "No"};
+                option = JOptionPane.showOptionDialog(null, "Would you like to try again?", title,
+                        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+                if (option == 1) {
                     return null;
-                } else if (!(option.equals("1"))) {
-                    System.out.println("Please enter a valid option");
                 }
-            } while (!option.equals("1"));
+            } while (option != 0);
         }
     }
 
@@ -1275,6 +1283,7 @@ public static User login(Scanner scanner) {
         boolean invEmail = true;
         boolean invPass = true;
         boolean invBuyer = true;
+        String title = "Create new Account";
         //The array userFile is filled with all the information of users from login.csv
         try {
             BufferedReader bfr = new BufferedReader(new FileReader(file));
@@ -1300,7 +1309,8 @@ public static User login(Scanner scanner) {
         System.out.println("A valid email contains an @ sign and has no commas");
         while(invEmail){
             System.out.print("Please enter a valid email: ");
-            email = scanner.nextLine();
+            email = JOptionPane.showInputDialog(null, "A valid email contains an @ sign and has no commas\n" +
+                            "Please enter a valid email:", title, JOptionPane.PLAIN_MESSAGE);
             for (String[] strings : userFile) {
                 if (email.equals(strings[1])) {
                     repeatEmail = true;
@@ -1308,9 +1318,11 @@ public static User login(Scanner scanner) {
                 }
             }
             if (email.contains(",") || !email.contains("@")) {
-                System.out.println("That user name was not valid");
+                JOptionPane.showMessageDialog(null, "That email was not valid", title, JOptionPane.WARNING_MESSAGE);
             } else if (repeatEmail) {
                 System.out.println("Someone else has that email please enter a different one.");
+                JOptionPane.showMessageDialog(null, "Someone else has that email please enter a different one", title,
+                        JOptionPane.WARNING_MESSAGE);
                 repeatEmail = false;
             } else {
                 invEmail = false;
@@ -1321,7 +1333,8 @@ public static User login(Scanner scanner) {
         System.out.println("A valid username contains no commas");
         while(invUsername){
             System.out.print("Please enter a valid username: ");
-            userName = scanner.nextLine();
+            userName = JOptionPane.showInputDialog(null, "A valid username contains no commas\nPlease enter a valid" +
+                    " username: ", title, JOptionPane.PLAIN_MESSAGE);
             for (String[] strings : userFile) {
                 if (userName.equals(strings[0])) {
                     repeatUser = true;
@@ -1329,9 +1342,9 @@ public static User login(Scanner scanner) {
                 }
             }
             if (userName.contains(",") || userName.equals("")) {
-                System.out.println("That user name was not valid");
+                JOptionPane.showMessageDialog(null, "That user name was not valid", title, JOptionPane.WARNING_MESSAGE);
             } else if (repeatUser) {
-                System.out.println("Someone else has that user name please enter a different one.");
+                JOptionPane.showMessageDialog(null, "Someone else has that user name please enter a different one.", title, JOptionPane.WARNING_MESSAGE);
                 repeatUser = false;
             } else {
                 invUsername = false;
@@ -1339,10 +1352,9 @@ public static User login(Scanner scanner) {
         }
         //Loops until a password is inputted
         while(invPass){
-            System.out.print("Please enter a password: ");
-            pass = scanner.nextLine();
+            pass = JOptionPane.showInputDialog(null, "Please enter a password: ", title, JOptionPane.PLAIN_MESSAGE);
             if (pass == null || pass.equals("")) {
-                System.out.println("That password was not valid");
+                JOptionPane.showMessageDialog(null, "That password was not valid", title, JOptionPane.WARNING_MESSAGE);
             } else {
                 invPass = false;
             }
@@ -1351,19 +1363,18 @@ public static User login(Scanner scanner) {
         System.out.println("A valid user type is either Buyer or Seller");
         while(invBuyer){
             System.out.print("Please enter a valid user type: ");
-            userType = scanner.nextLine();
-            if (userType.equalsIgnoreCase("Buyer")) {
+            String[] options = new String[]{"Buyer", "Seller"};
+            int choice = JOptionPane.showOptionDialog(null, "Are you a buyer or seller?", title,
+                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+            if (choice == 0) {
                 userType = "b";
                 user = new Buyer(userName, email, pass);
                 invBuyer = false;
-            }else if (userType.equalsIgnoreCase("Seller")) {
+            }else if (choice == 1) {
                 userType = "s";
                 user = new Seller(userName, email, pass);
                 invBuyer = false;
-            } else {
-                System.out.println("That user type was not valid");
             }
-
         }
         //The new user is written into login.csv
         try {
