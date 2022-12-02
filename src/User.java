@@ -145,6 +145,11 @@ public class User {
     public boolean blockUser(String username, ArrayList<User> users) {
         for (User u : users) {
             if (u.getUsername().equalsIgnoreCase(username)) {
+                for (User bu : blockedUsers) {
+                    if (bu.getUsername().equals(username)) {
+                        return false;
+                    }
+                }
                 blockedUsers.add(u);
                 return true;
             }
@@ -155,7 +160,7 @@ public class User {
     // removes specific person from the blockedUsers list
     public boolean unblockUser(String username, ArrayList<User> users) {
         for (User u : users) {
-            if (u.getUsername().equalsIgnoreCase(username)) {
+            if (u.getUsername().equalsIgnoreCase(username) && blockedUsers.contains(u)) {
                 blockedUsers.remove(u);
                 return true;
             }
