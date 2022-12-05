@@ -1212,7 +1212,7 @@ public class Menu {
         int start =0;
         for(int i=0; i<s.length()-1; i++)
         {
-            if(s.charAt(i)==',' && notInsideComma)
+            if(s.charAt(i) == ',' && notInsideComma)
             {
                 words.add(s.substring(start + 1,i - 1));
                 start = i+1;
