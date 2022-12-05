@@ -1,3 +1,4 @@
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -11,7 +12,7 @@ import java.time.format.DateTimeFormatter;
  * @version November 15, 2022
  *
  */
-public class Message {
+public class Message implements Serializable {
     private final int id;                     // unique field for every message
     private static int count = 0;            // count is needed to assign unique value of ID to each message
     private final String time;                // time at which message was sent

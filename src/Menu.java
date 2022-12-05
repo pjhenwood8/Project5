@@ -1,11 +1,11 @@
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.ConnectException;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Project 4 - Menu
@@ -24,8 +24,8 @@ public class Menu {
         boolean online = true;
         ArrayList<User> users = readUsers("login.csv");                 // Each line in the "login.csv" file is a User object, using special method we read whole file into an ArrayList of Users
         ArrayList<Store> stores = readStores("stores.csv", users);      // We do the same thing with the stores objects
-        addBlockedUsers(users);
-        /*boolean serverConnection = false;
+        boolean serverConnection = false;
+        Socket socket = null;
         while (!serverConnection) {
             int port = 0;
             do {
@@ -33,102 +33,178 @@ public class Menu {
                     port = Integer.parseInt(JOptionPane.showInputDialog(null,
                             "Enter port number (4242) ", "Client", JOptionPane.QUESTION_MESSAGE));
                 } catch (NumberFormatException n2) {
-                    if (port == 0) {
-                        return;
-                    }
-                    JOptionPane.showMessageDialog(null,
-                            "Enter a valid number!", "Client", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
             } while (port == 0);
             try {
-                Socket socket = new Socket("localhost", port);
+                socket = new Socket("localhost", port);
                 serverConnection = true;
             } catch (ConnectException ce) {
                 JOptionPane.showMessageDialog(null,
                         "A connection couldn't be made", "Client", JOptionPane.ERROR_MESSAGE);
             }
-        }*/
+        }
+        BufferedReader bfrServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        PrintWriter pwServer = new PrintWriter(socket.getOutputStream());
+        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
         while (online) {
             String title = "Welcome to the Marketplace Messaging System!";
             String[] options;
-            boolean LoggingIn = true;
+            boolean loggingIn = true;
             boolean loggedIn = false;
-            User user = null;
             User currUser = null;
-            while (LoggingIn) {                                                  // An infinite loop that breaks when user is able to log in
+            while (loggingIn) {                                                  // An infinite loop that breaks when
+                // user is able to log in
                 // User is presented with 3 options: log in into existing acc, create new acc, or exit the program
                 options = new String[]{"Login", "Create Account", "Exit"};
                 int choice = JOptionPane.showOptionDialog(null, "Please select an option to proceed", title,
                         JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[2]);
+                pwServer.write(choice);
+                pwServer.flush();
+                String email = "";
+                String pass = "";
+                String userName = "";
+                boolean invBuyer = true;
                 switch (choice) {
                     case 0:
                         // If user wants to log in into existing acc, if it's successful, infinite loop breaks
-                        user = login();
-                        if (user != null)
-                            LoggingIn = false;                  // to end an infinite loop
-                        break;
-                    case 1:
-                        user = createAccount("login.csv");          // After creating acc, user is already counted as logged-in user
-                        if (user != null) {
-                            LoggingIn = false;              // breaks infinite loop
-                            currUser = user;                // user is logged in
-                            users.add(user);                // add user to the ArrayList of all users
+                        email = JOptionPane.showInputDialog(null, "Please enter your email:", title,
+                                JOptionPane.PLAIN_MESSAGE);
+                        pwServer.write(email);
+                        pwServer.println();
+                        pwServer.flush();
+                        pass = JOptionPane.showInputDialog(null, "Please enter your password:", title,
+                                JOptionPane.PLAIN_MESSAGE);
+                        pwServer.write(pass);
+                        pwServer.println();
+                        pwServer.flush();
+                        if (currUser != null) {
+                            loggingIn = false;                  // to end an infinite loop
                         }
                         break;
-                    case 2:                    // To exit program
-                        LoggingIn = false;
+                    case 1:
+                        do {
+                            email = JOptionPane.showInputDialog(null, "A valid email contains an @ sign and has no commas\n" +
+                                    "Please enter a valid email:", title, JOptionPane.PLAIN_MESSAGE);
+                            if (email.contains(",") || !email.contains("@")) {
+                                JOptionPane.showMessageDialog(null, "That email was not valid", title, JOptionPane.WARNING_MESSAGE);
+                                email = "";
+                            } else {
+                                pwServer.write(email);
+                                pwServer.println();
+                                pwServer.flush();
+                                System.out.printf("Sent to server:\n%s\n", email);
+                            }
+                        } while (email.isEmpty());
+
+                        //Loops until a valid username is inputted, a valid username being a username that is
+                        //not previously used and does not have a comma
+                        do {
+                            userName = JOptionPane.showInputDialog(null, "A valid username contains no commas\nPlease enter a valid" +
+                                    " username: ", title, JOptionPane.PLAIN_MESSAGE);
+
+                            if (userName.contains(",") || userName.equals("")) {
+                                JOptionPane.showMessageDialog(null, "That user name was not valid", title, JOptionPane.WARNING_MESSAGE);
+                                userName = "";
+                            } else {
+                                pwServer.write(userName);
+                                pwServer.println();
+                                pwServer.flush();
+                                System.out.printf("Sent to server:\n%s\n", userName);
+                            }
+                        } while (userName.isEmpty());
+
+                        //Loops until a password is inputted
+                        do {
+                            pass = JOptionPane.showInputDialog(null, "Please enter a password: ", title, JOptionPane.PLAIN_MESSAGE);
+                            if (pass == null || pass.equals("")) {
+                                JOptionPane.showMessageDialog(null, "That password is not valid", title,
+                                        JOptionPane.WARNING_MESSAGE);
+                                pass = "";
+                            } else {
+                                pwServer.write(pass);
+                                pwServer.println();
+                                pwServer.flush();
+                                System.out.printf("Sent to server:\n%s\n", pass);
+                            }
+                        } while (pass.isEmpty());
+
+                        //Loops until buyer/seller is inputted
+                        while(invBuyer){
+                            options = new String[]{"Buyer", "Seller"};
+                            choice = JOptionPane.showOptionDialog(null, "Are you a buyer or seller?", title,
+                                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+                            pwServer.write(choice);
+                            pwServer.flush();
+                            if (choice == 0 || choice == 1) {
+                                invBuyer = false;
+                            }
+                        }
+                        break;
+                    default:                    // To exit program
+                        loggingIn = false;
                         online = false;           // When online is false, program stops working
-                    default:
-                        user = null;
                         break;
                 }
-            }
-            if (user != null) {
-                // Confirmation message, when user is able to log in
-                JOptionPane.showMessageDialog(null, "Successfully logged in as " + user.getUsername(), "Marketplace " +
-                        "Messaging System", JOptionPane.INFORMATION_MESSAGE);
-                for (User u : users) {
-                    if (u.getUsername().equalsIgnoreCase(user.getUsername())) {
-                        currUser = u;
-                        loggedIn = true;
+                try {
+                    currUser = (User) ois.readObject();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+                if (currUser != null) {
+                    loggingIn = false;
+                } else {
+                    if (choice == 0) {
+                        JOptionPane.showMessageDialog(null, "Your email or password was incorrect", "Login",
+                                JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "That account couldn't be created because that email " +
+                                        "or username is already in use", "Login", JOptionPane.WARNING_MESSAGE);
                     }
                 }
             }
-            writeUsers("login.csv",users);          // Updates login.csv file, after finishing the logging in process, in case if new users are created
+
+            // Confirmation message, when user is able to log in
+            JOptionPane.showMessageDialog(null, "Successfully logged in as " + currUser.getUsername(), "Marketplace " +
+                    "Messaging System", JOptionPane.INFORMATION_MESSAGE);
+            loggedIn = true;
+
+            int numOfBuyers = 0;
+            int numOfSellers = 0;
+            for (User u : users) {
+                if (u instanceof Buyer) {
+                    numOfBuyers++;
+                } else if (u instanceof Seller) {
+                    numOfSellers++;
+                }
+            }
+            String[] buyers = new String[numOfBuyers];
+            int n = 0;
+            for (User u : users) {
+                if (u instanceof Buyer) {
+                    buyers[n] = u.getUsername();
+                    n++;
+                }
+            }
+            String[] sellers = new String[numOfSellers];
+            n = 0;
+            for (User u : users) {
+                if (u instanceof Seller) {
+                    sellers[n] = u.getUsername();
+                    n++;
+                }
+            }
+            String[] userArr = new String[users.size()];
+            n = 0;
+            for (User u : users) {
+                userArr[n] = u.getUsername();
+                n++;
+            }
 
             while (loggedIn) {
                 if (currUser != null) {
-                    int numOfBuyers = 0;
-                    int numOfSellers = 0;
-                    for (User u : users) {
-                        if (u instanceof Buyer) {
-                            numOfBuyers++;
-                        } else if (u instanceof Seller) {
-                            numOfSellers++;
-                        }
-                    }
-                    String[] buyers = new String[numOfBuyers];
-                    int n = 0;
-                    for (User u : users) {
-                        if (u instanceof Buyer) {
-                            buyers[n] = u.getUsername();
-                            n++;
-                        }
-                    }
-                    String[] sellers = new String[numOfSellers];
-                    n = 0;
-                    for (User u : users) {
-                        if (u instanceof Seller) {
-                            sellers[n] = u.getUsername();
-                            n++;
-                        }
-                    }
-                    String[] userArr = new String[users.size()];
-                    n = 0;
-                    for (User u : users) {
-                        userArr[n] = u.getUsername();
-                        n++;
-                    }
+
                     /*
                     When user logs in, he is presented with 4 options:
                     1) Messages is the part of the program where user is able to send messages to either Customers or Sellers, depending on who is User itself
@@ -151,7 +227,7 @@ public class Menu {
                                     user had conversations before. That way we are able to avoid situation where messages not
                                     related to the user are being used.
                                     */
-                                    String[] listOfUsers = parseUsers(user);
+                                    String[] listOfUsers = parseUsers(currUser);
                                     options = new String[listOfUsers.length + 2];
                                     options[0] = "Start new dialog";
                                     if (listOfUsers.length + 1 - 1 >= 0)
@@ -195,12 +271,13 @@ public class Menu {
                                             // user exists, user is Buyer, you didn't block each other
                                             String mes = JOptionPane.showInputDialog(null, "Write your hello message first!",
                                                     title, JOptionPane.PLAIN_MESSAGE);               // user enters the message he would want to send to new user
-                                            ArrayList<Message> temp = user.getMessages();  // creates new ArrayList with user messages
-                                            temp.add(new Message(user.getUsername(), newUser, mes));    // adds new message to that ArrayList
-                                            user.setMessages(temp);                        // updates the messages field on the user
-                                            messageHistory = parseMessageHistory(user, newUser);     // after the messages field was updated, we update the messageHistory and print that out
+                                            ArrayList<Message> temp = currUser.getMessages();  // creates new ArrayList with user messages
+                                            temp.add(new Message(currUser.getUsername(), newUser, mes));    // adds new message to that ArrayList
+                                            currUser.setMessages(temp);                        // updates the messages field on the user
+                                            messageHistory = parseMessageHistory(currUser, newUser);     // after the
+                                            // messages field was updated, we update the messageHistory and print that out
                                             messageHist = new StringBuilder(String.format("Message " +
-                                                    "History: %s - %s%n", user.getUsername(), newUser));
+                                                    "History: %s - %s%n", currUser.getUsername(), newUser));
                                             for (Message message : messageHistory) {
                                                 messageHist.append(message.toString());
                                             }
@@ -209,11 +286,11 @@ public class Menu {
                                         // new dialog or exit the program
                                                                              // receiveUser is to view conversations you had before with other users
                                         while (true) {
-                                            messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);        // update messageHistory to print that out
+                                            messageHistory = parseMessageHistory(currUser, listOfUsers[receiveUser - 1]);        // update messageHistory to print that out
                                             messageHist = new StringBuilder(String.format("Message " +
                                                     "History: %s - " +
                                                             "%s%n----------------------------------------%n",
-                                                            user.getUsername(), listOfUsers[receiveUser - 1]));
+                                                            currUser.getUsername(), listOfUsers[receiveUser - 1]));
                                             for (Message value : messageHistory) {
                                                 if (value.getMessage().contains("\\n")) {        // this part of the code is here in case if message has multiple lines in it
                                                     String ansMes = value.getMessage().replaceAll("\\\\n", "\n");  // it replaces signs of new lines, to actual new lines
@@ -257,9 +334,9 @@ public class Menu {
                                                 if (fileOrText == 0) {       // regular message
                                                     String mes = JOptionPane.showInputDialog(null, "Write your message: ",
                                                             title, JOptionPane.PLAIN_MESSAGE);
-                                                    ArrayList<Message> temp = user.getMessages();
-                                                    temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
-                                                    user.setMessages(temp);        // updates the messages field of the user to the renewed messageHistory
+                                                    ArrayList<Message> temp = currUser.getMessages();
+                                                    temp.add(new Message(currUser.getUsername(), listOfUsers[receiveUser - 1], mes));
+                                                    currUser.setMessages(temp);        // updates the messages field of the user to the renewed messageHistory
                                                 } else if (fileOrText == 1) {      //uploading files
                                                     String fileName = JOptionPane.showInputDialog(null, "Enter " +
                                                                     "name of txt file: ", title, JOptionPane.PLAIN_MESSAGE);    // enters name of the file
@@ -273,27 +350,28 @@ public class Menu {
                                                         }
                                                         mes = String.join("\\n",tempArr);              // combine all lines in the file by \\n which shows up as \n in the messages.csv file
                                                                                                                // we read it as new line when writing all messages
-                                                        ArrayList<Message> temp = user.getMessages();
-                                                        temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
-                                                        user.setMessages(temp);                  // updates the messages field of the user
+                                                        ArrayList<Message> temp = currUser.getMessages();
+                                                        temp.add(new Message(currUser.getUsername(), listOfUsers[receiveUser - 1], mes));
+                                                        currUser.setMessages(temp);                  // updates the messages field of the user
                                                     }
                                                     catch (FileNotFoundException e) {         // if user enters file that does not exist
                                                         JOptionPane.showMessageDialog(null, "That file could not be " +
                                                                 "found", "Error", JOptionPane.ERROR_MESSAGE);
                                                     }
                                                 }
-                                                saveMessages(user);
+                                                saveMessages(currUser);
                                             } else if (optionChoice == 1) {          // editing messages
-                                                messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
+                                                messageHistory = parseMessageHistory(currUser,
+                                                        listOfUsers[receiveUser - 1]);
                                                 ArrayList<Message> userIsSender = new ArrayList<>();         // here only messages that are sends by the current user will be saved
                                                 int i = 0;
                                                 int z = 0;
                                                 messageHist = new StringBuilder(String.format("Message " +
                                                                 "History: %s - " +
                                                                 "%s%n----------------------------------------%n",
-                                                        user.getUsername(), listOfUsers[receiveUser - 1]));
+                                                        currUser.getUsername(), listOfUsers[receiveUser - 1]));
                                                 while (z < messageHistory.size()) {
-                                                    if (messageHistory.get(z).getSender().equals(user.getUsername())) {      // checks if message is sent by the main user
+                                                    if (messageHistory.get(z).getSender().equals(currUser.getUsername())) {      // checks if message is sent by the main user
                                                         userIsSender.add(messageHistory.get(z));
                                                         // if message is sent by the main user, the number will appear next to it
                                                         messageHist.append(String.format("[%d] " + messageHistory.get(z).toString(), i + 1));
@@ -319,13 +397,14 @@ public class Menu {
                                                             message.setMessage(msg);                   // when we find that message in the main message history, we change its text
                                                         }
                                                     }
-                                                    saveMessages(user);
+                                                    saveMessages(currUser);
                                                 } else {
                                                     JOptionPane.showMessageDialog(null, "No messages to edit with" +
                                                                     " this user", title, JOptionPane.ERROR_MESSAGE);
                                                 }
                                             } else if (optionChoice == 2) {             // deleting messages
-                                                messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);       // we save message history
+                                                messageHistory = parseMessageHistory(currUser,
+                                                        listOfUsers[receiveUser - 1]);       // we save message history
                                                 ArrayList<Message> userIsSender = new ArrayList<>();         // I guess here I was kind of lazy, so userIsSender now stores every message in it
                                                 // because in deleting messages it doesn't really matter if you aren't creator of the message
                                                 // since you can delete whether message you wish for
@@ -333,7 +412,7 @@ public class Menu {
                                                 messageHist = new StringBuilder(String.format("Message " +
                                                                 "History: %s - " +
                                                                 "%s%n----------------------------------------%n",
-                                                        user.getUsername(), listOfUsers[receiveUser - 1]));
+                                                        currUser.getUsername(), listOfUsers[receiveUser - 1]));
                                                 while (i < messageHistory.size()) {
                                                     userIsSender.add(messageHistory.get(i));              // adding every message into the userIsSender arraylist
                                                     // printing every message with a number next to it
@@ -350,18 +429,18 @@ public class Menu {
                                                             title, JOptionPane.QUESTION_MESSAGE, null, messageNums,
                                                             messageNums[0]);  // user chooses which message to delete
                                                     Message temp = userIsSender.get(choice - 1);        // we assign the message user chose to Message temp variable
-                                                    ArrayList<Message> allUserMessages = user.getMessages();
+                                                    ArrayList<Message> allUserMessages = currUser.getMessages();
                                                     for (int j = 0; j < allUserMessages.size(); j++) {
                                                         if (allUserMessages.get(j).getId() == temp.getId()) {         // finding temp message in the main allUserMessages ArrayList
-                                                            if (temp.getSender().equals(user.getUsername()))          // if main user was sender
+                                                            if (temp.getSender().equals(currUser.getUsername()))          // if main user was sender
                                                                 allUserMessages.get(j).setDelBySender(true);          // then message becomes invisible to the sender
                                                             else                                                      // if main user was receiver
                                                                 allUserMessages.get(j).setDelByReceiver(true);        // then message becomes invisible to the receiver
-                                                            user.setMessages(allUserMessages);                        // updates the messages field of the user after deleting the message
+                                                            currUser.setMessages(allUserMessages);                        // updates the messages field of the user after deleting the message
                                                             break;
                                                         }
                                                     }
-                                                    user.refreshMessages();            // refreshMessages is used to remove some messages in the messages field of the user, because we need to be
+                                                    currUser.refreshMessages();            // refreshMessages is used to remove some messages in the messages field of the user, because we need to be
                                                     // manually remove some messages in the messages field. setMessages isn't enough, because it doesn't actually remove messages
                                                     // it only updates its values
                                                 } else {
@@ -391,7 +470,7 @@ public class Menu {
                                         break;                                          // If user chooses to exit, we break the infinite loop, and user is able to choose statistics or account settings
                                     }
                                 }
-                                saveMessages(user);                          // after everything is finished, we save the current messages field of the user to the messages.csv using this method
+                                saveMessages(currUser);                          // after everything is finished, we save the current messages field of the user to the messages.csv using this method
                             } else if (currUser instanceof Buyer) {
                                 /*
                                 if you are buyer, when trying to enter the Messaging part of the program, you will be presented with 3 options
@@ -429,7 +508,7 @@ public class Menu {
                                                             title, JOptionPane.PLAIN_MESSAGE);           // main user writes the message to the store
                                                     ArrayList<Message> temp = currUser.getMessages();
                                                     temp.add(new Message(currUser.getUsername(), value.getUsername(), msg));                  // writes new message
-                                                    user.setMessages(temp);               // update the messages field of the user
+                                                    currUser.setMessages(temp);               // update the messages field of the user
                                                     // tells user who is owner of the store
                                                     JOptionPane.showMessageDialog(null, "Store manager's username" +
                                                             " is " + value.getUsername() + "Please wait for his " +
@@ -464,7 +543,7 @@ public class Menu {
                                     // write to the specific Seller directly
                                     while (true) {
                                         ArrayList<Message> messageHistory;
-                                        String[] listOfUsers = parseUsers(user);                        // List of users with whom he had conversations before
+                                        String[] listOfUsers = parseUsers(currUser);                        // List of users with whom he had conversations before
                                         options = new String[listOfUsers.length + 2];
                                         options[0] = "Start new dialog";
                                         for (int i = 1; i < listOfUsers.length + 1; i++) {
@@ -506,19 +585,19 @@ public class Menu {
                                             if (flag && flag2 && !alreadyMessaged) {
                                                 String mes = JOptionPane.showInputDialog(null, "Write your hello message first!",
                                                         title, JOptionPane.PLAIN_MESSAGE);               // user enters the message he would want to send to new user
-                                                ArrayList<Message> temp = user.getMessages();
-                                                temp.add(new Message(user.getUsername(), newUser, mes));
-                                                user.setMessages(temp);
-                                                parseMessageHistory(user, newUser);
+                                                ArrayList<Message> temp = currUser.getMessages();
+                                                temp.add(new Message(currUser.getUsername(), newUser, mes));
+                                                currUser.setMessages(temp);
+                                                parseMessageHistory(currUser, newUser);
                                             }
                                         } else if (receiveUser >= 1 && receiveUser != options.length - 1) {
                                             // if user chooses to continue conversation with the user he had conversation before
                                             while (true) {
-                                                messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
+                                                messageHistory = parseMessageHistory(currUser, listOfUsers[receiveUser - 1]);
                                                 messageHist = new StringBuilder(String.format("Message " +
                                                                 "History: %s - " +
                                                                 "%s%n----------------------------------------%n",
-                                                        user.getUsername(), listOfUsers[receiveUser - 1]));
+                                                        currUser.getUsername(), listOfUsers[receiveUser - 1]));
                                                 for (Message message : messageHistory) {                            // prints out every message
                                                     if (message.getMessage().contains("\\n")) {
                                                         String ansMes = message.getMessage().replaceAll("\\\\n", "\n");
@@ -545,9 +624,9 @@ public class Menu {
                                                     if (fileOrText == 1) {              // if user sends regular message
                                                         String mes = JOptionPane.showInputDialog(null, "Write your message: ",
                                                                 title, JOptionPane.PLAIN_MESSAGE);
-                                                        ArrayList<Message> temp = user.getMessages();
-                                                        temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
-                                                        user.setMessages(temp);
+                                                        ArrayList<Message> temp = currUser.getMessages();
+                                                        temp.add(new Message(currUser.getUsername(), listOfUsers[receiveUser - 1], mes));
+                                                        currUser.setMessages(temp);
                                                     }
                                                     else if (fileOrText == 2) {            // if user sends txt file as a message
                                                         String fileName = JOptionPane.showInputDialog(null, "Enter " +
@@ -561,9 +640,9 @@ public class Menu {
                                                                 tempArr.add(st);
                                                             }
                                                             mes = String.join("\\n",tempArr);
-                                                            ArrayList<Message> temp = user.getMessages();
-                                                            temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
-                                                            user.setMessages(temp);
+                                                            ArrayList<Message> temp = currUser.getMessages();
+                                                            temp.add(new Message(currUser.getUsername(), listOfUsers[receiveUser - 1], mes));
+                                                            currUser.setMessages(temp);
                                                         }
                                                         catch (FileNotFoundException e) {
                                                             JOptionPane.showMessageDialog(null, "That file could not " +
@@ -572,16 +651,17 @@ public class Menu {
                                                     }
                                                 } else if (optionChoice == 1) {              //
                                                     // if user chooses to edit messages (for more detailed comments refer to line 210)
-                                                    messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
+                                                    messageHistory = parseMessageHistory(currUser,
+                                                            listOfUsers[receiveUser - 1]);
                                                     ArrayList<Message> userIsSender = new ArrayList<>();
                                                     int i = 0;
                                                     int z = 0;
                                                     messageHist = new StringBuilder(String.format("Message " +
                                                                     "History: %s - " +
                                                                     "%s%n----------------------------------------%n",
-                                                            user.getUsername(), listOfUsers[receiveUser - 1]));
+                                                            currUser.getUsername(), listOfUsers[receiveUser - 1]));
                                                     while (z < messageHistory.size()) {
-                                                        if (messageHistory.get(z).getSender().equals(user.getUsername())) {
+                                                        if (messageHistory.get(z).getSender().equals(currUser.getUsername())) {
                                                             userIsSender.add(messageHistory.get(z));
                                                             messageHist.append(String.format("[%d] " + messageHistory.get(i).toString(), i + 1));
                                                             i++;
@@ -606,20 +686,20 @@ public class Menu {
                                                                 message.setMessage(msg);                   // when we find that message in the main message history, we change its text
                                                             }
                                                         }
-                                                        saveMessages(user);
+                                                        saveMessages(currUser);
                                                     } else {
                                                         JOptionPane.showMessageDialog(null, "No messages to edit with" +
                                                                 " this user", title, JOptionPane.ERROR_MESSAGE);
                                                     }
                                                 }else if (optionChoice == 2) {                 // if user chooses
                                                     // to delete the message (more detailed comments on the line 258)
-                                                    messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
+                                                    messageHistory = parseMessageHistory(currUser, listOfUsers[receiveUser - 1]);
                                                     ArrayList<Message> userIsSender = new ArrayList<>();
                                                     int i = 0;
                                                     messageHist = new StringBuilder(String.format("Message " +
                                                                     "History: %s - " +
                                                                     "%s%n----------------------------------------%n",
-                                                            user.getUsername(), listOfUsers[receiveUser - 1]));
+                                                            currUser.getUsername(), listOfUsers[receiveUser - 1]));
                                                     while (i < messageHistory.size()) {
                                                         userIsSender.add(messageHistory.get(i));              // adding every message into the userIsSender arraylist
                                                         // printing every message with a number next to it
@@ -636,18 +716,18 @@ public class Menu {
                                                                 title, JOptionPane.QUESTION_MESSAGE, null, messageNums,
                                                                 messageNums[0]);  // user chooses which message to delete
                                                         Message temp = userIsSender.get(choice - 1);        // we assign the message user chose to Message temp variable
-                                                        ArrayList<Message> allUserMessages = user.getMessages();
+                                                        ArrayList<Message> allUserMessages = currUser.getMessages();
                                                         for (int j = 0; j < allUserMessages.size(); j++) {
                                                             if (allUserMessages.get(j).getId() == temp.getId()) {         // finding temp message in the main allUserMessages ArrayList
-                                                                if (temp.getSender().equals(user.getUsername()))          // if main user was sender
+                                                                if (temp.getSender().equals(currUser.getUsername()))          // if main user was sender
                                                                     allUserMessages.get(j).setDelBySender(true);          // then message becomes invisible to the sender
                                                                 else                                                      // if main user was receiver
                                                                     allUserMessages.get(j).setDelByReceiver(true);        // then message becomes invisible to the receiver
-                                                                user.setMessages(allUserMessages);                        // updates the messages field of the user after deleting the message
+                                                                currUser.setMessages(allUserMessages);                        // updates the messages field of the user after deleting the message
                                                                 break;
                                                             }
                                                         }
-                                                        user.refreshMessages();            // refreshMessages is used to remove some messages in the messages field of the user, because we need to be
+                                                        currUser.refreshMessages();            // refreshMessages is used to remove some messages in the messages field of the user, because we need to be
                                                         // manually remove some messages in the messages field. setMessages isn't enough, because it doesn't actually remove messages
                                                         // it only updates its values
                                                     } else {
@@ -677,7 +757,7 @@ public class Menu {
                                             break;
                                         }
                                     }
-                                    saveMessages(user);                        // saves changed to the messages.csv after finishing the messages part of the program
+                                    saveMessages(currUser);                        // saves changed to the messages.csv after finishing the messages part of the program
                                 } else  {
                                     break;          // breaks out of infinite loop if user chooses to exit
                                 }
@@ -1262,7 +1342,7 @@ public class Menu {
             pw.flush();
         }
     }
-public static User login() {
+public static User login(BufferedReader bfr, PrintWriter pw) {
     // Initialize variables
         ArrayList<String[]> users = new ArrayList<>();
         ArrayList<String> tempArrayList = new ArrayList<>();
@@ -1273,8 +1353,8 @@ public static User login() {
         String title = "Login";
 
         //Add users from file to arraylist
-        try {
-            BufferedReader bfr = new BufferedReader(new FileReader("login.csv"));
+        /*try {
+            //BufferedReader bfr = new BufferedReader(new FileReader("login.csv"));
             String line = bfr.readLine();
             while (line != null) {
                 tempArrayList.add(line);
@@ -1290,13 +1370,19 @@ public static User login() {
             }
             bfr.close();
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);;
-        }
+            JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);
+        } */
     //Loops forever until a valid email and password are entered, or the escape sequence is ran
         while (true) {
             email = JOptionPane.showInputDialog(null, "Please enter your email:", title, JOptionPane.PLAIN_MESSAGE);
+            pw.write(email);
+            pw.println();
+            pw.flush();
             pass = JOptionPane.showInputDialog(null, "Please enter your password:", title,
-                    JOptionPane.PLAIN_MESSAGE);;
+                    JOptionPane.PLAIN_MESSAGE);
+            pw.write(pass);
+            pw.println();
+            pw.flush();
 
             invEmail = true;
             for (String[] user : users) {
@@ -1366,7 +1452,7 @@ public static User login() {
             }
             bfr.close();
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);;
+            JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);
         }
         //Loops until a valid email is inputted, a valid email being an email that is
         //not previously used and does not have and @ sign or comma
@@ -1442,7 +1528,7 @@ public static User login() {
             pw.println("\"" + userName + "\"" + "," + "\"" + email + "\"" + "," + "\"" + pass + "\"" + "," + "\"" + userType + "\"" + ",\"\"");
             pw.close();
         } catch (IOException e ) {
-            JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);;
+            JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);
         }
         //A new user is returned using the information inputted
         return user;
@@ -1459,7 +1545,7 @@ public static User login() {
         BufferedReader bfr = null;
         ArrayList<User> users = new ArrayList<>();
         if (!f.exists()) {
-            JOptionPane.showMessageDialog(null, "That file could not be found", "Error", JOptionPane.ERROR_MESSAGE);;
+            JOptionPane.showMessageDialog(null, "That file could not be found", "Error", JOptionPane.ERROR_MESSAGE);
         } else {
             try {
                 bfr = new BufferedReader(new FileReader(f));
@@ -1469,14 +1555,14 @@ public static User login() {
                     read = bfr.readLine();
                 }
             } catch (IOException e) {
-                JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);;
+                JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);
             } finally {
                 try {
                     if (bfr != null) {
                         bfr.close();
                     }
                 } catch (IOException e) {
-                    JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);;
+                    JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
 
@@ -1550,7 +1636,7 @@ public static User login() {
                         bfr.close();
                     }
                 } catch (IOException e) {
-                    JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);;
+                    JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
 

@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -103,11 +100,12 @@ public class Buyer extends User {
 
     public String toString() {
         String blockedList = "";
-        for (User user : getBlockedUsers()) {
-            blockedList += user.getUsername() + ",";
+        if (getBlockedUsers().size() > 0) {
+            for (User user : getBlockedUsers()) {
+                blockedList += user.getUsername() + ",";
+            }
+            blockedList = blockedList.substring(0, blockedList.length() - 1);
         }
-        blockedList = blockedList.substring(0, blockedList.length()-1);
-
         String ans = String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"", getUsername(), getEmail(),
                 getPassword(), "b", blockedList);
         return ans;

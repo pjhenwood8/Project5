@@ -1,3 +1,4 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
@@ -10,7 +11,7 @@ import java.util.ArrayList;
  * @version November 15, 2022
  *
  */
-public class Store {
+public class Store implements Serializable {
 
     /*
     This class was created specifically for the Seller class, it doesn't really have any complicated methods in it.

@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -166,16 +167,19 @@ public class Seller extends User {
     @Override
     public String toString() {
         String blockedList = "";
-        for (User user : getBlockedUsers()) {
-            blockedList += user.getUsername() + ",";
+        if (getBlockedUsers().size() > 0) {
+            for (User user : getBlockedUsers()) {
+                blockedList += user.getUsername() + ",";
+            }
+            blockedList = blockedList.substring(0, blockedList.length() - 1);
         }
-        blockedList = blockedList.substring(0, blockedList.length()-1);
-
         String storesList = "";
-        for (String store : getStores()) {
-            storesList += store + ",";
+        if (getStores().size() > 0) {
+            for (String store : getStores()) {
+                storesList += store + ",";
+            }
+            storesList = storesList.substring(0, storesList.length() - 1);
         }
-        storesList = storesList.substring(0, storesList.length()-1);
 
         String ans = String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"", getUsername(), getEmail(),
                 getPassword(), "s", blockedList, storesList);

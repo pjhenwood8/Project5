@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -10,52 +11,75 @@ public class Server {
         //ArrayList<Message> allMessages = readWholeFile();
         ArrayList<User> allUsers = readUsers("login.csv");
         ArrayList<Store> allStores = readStores("stores.csv", allUsers);
+        addBlockedUsers(allUsers);
+        int numOfBuyers = 0;
+        int numOfSellers = 0;
+        for (User u : allUsers) {
+            if (u instanceof Buyer) {
+                numOfBuyers++;
+            } else if (u instanceof Seller) {
+                numOfSellers++;
+            }
+        }
+        String[] buyers = new String[numOfBuyers];
+        int n = 0;
+        for (User u : allUsers) {
+            if (u instanceof Buyer) {
+                buyers[n] = u.getUsername();
+                n++;
+            }
+        }
+        String[] sellers = new String[numOfSellers];
+        n = 0;
+        for (User u : allUsers) {
+            if (u instanceof Seller) {
+                sellers[n] = u.getUsername();
+                n++;
+            }
+        }
+        String[] userArr = new String[allUsers.size()];
+        n = 0;
+        for (User u : allUsers) {
+            userArr[n] = u.getUsername();
+            n++;
+        }
 
         while (true) {
             try {
                 Scanner scanner = new Scanner(System.in);
                 Socket socket = serverSocket.accept();
+                System.out.println("Client connected");
                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 PrintWriter writer = new PrintWriter(socket.getOutputStream());
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
                 while (true) {
                     User user = null;
-                    int choice = Integer.parseInt(reader.readLine());
-                    if (choice == 1) {                 // LOGIN / CREATE ACCOUNT / EXIT
+                    int choice = reader.read();
+                    if (choice == 0) {                 // LOGIN / CREATE ACCOUNT / EXIT
                         String email = reader.readLine();
                         String password = reader.readLine();
                         user = login(email, password, allUsers);
                     }
-                    else if (choice == 2) {         // LOGIN / CREATE ACCOUNT / EXIT
+                    else if (choice == 1) {         // LOGIN / CREATE ACCOUNT / EXIT
                         String email = reader.readLine();
                         String username = reader.readLine();
                         String password = reader.readLine();
-                        String type = reader.readLine();
+                        int type = reader.read();
                         try {
                             user = createAccount(email, username, password, type, allUsers);
-                            writer.write("User created");
-                            writer.println();
-                            writer.flush();
+                        } catch (LoginException e) {
+                            user = null;
                         }
-                        catch (LoginException e) {
-                            writer.write(e.getMessage());
-                            writer.println();
-                            writer.flush();
+                        if (user != null) {
+                            allUsers.add(user);
+                            writeUsers("login.csv", allUsers);
                         }
-                    }
-                    else if (choice == 0) {          // LOGIN / CREATE ACCOUNT / EXIT
+                    } else {
                         break;
                     }
-
-                    if (user == null){
-                        writer.write("Login fail");
-                        writer.println();
-                        writer.flush();
-                    } else {
-                        writer.write("Login success");
-                        writer.println();
-                        writer.flush();
+                    oos.writeObject(user);
+                    if (user != null) {
                         choice = Integer.parseInt(reader.readLine());
                         if (choice == 1) {       // MESSAGES / STATISTICS / ACCOUNT / EXIT
                             if (user instanceof Buyer) {
@@ -63,7 +87,7 @@ public class Server {
                                 choice = Integer.parseInt(reader.readLine());
                                 if (choice == 1) {      //WRITE TO STORE / WRITE TO SELLER / EXIT
                                     oos.writeObject(allStores);   // we send the store list
-                                    // in order for them to chose one to text
+                                    // in order for them to choose one to text
                                     oos.flush();
 
                                     String storeNameToMessage = reader.readLine();       // user enters the name of the store
@@ -154,9 +178,7 @@ public class Server {
                                                 if (u.equals(sellerToWrite)) {
                                                     alreadyMessaged = true;
                                                     writer.write("You can't start a new dialog with a " +
-                                                            "user " +
-                                                            "you " +
-                                                            "already messaged!");
+                                                            "user you already messaged!");
                                                     writer.println();
                                                     writer.flush();
                                                 }
@@ -293,7 +315,7 @@ public class Server {
                                                     }
                                                 }
                                                 // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
-                                                // -1  ISEXPORT MESSAGE HISTORY TO CSV FILE
+                                                // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
                                                 if (optionChoice == 2) {              // if user chooses to edit messages (for more detailed comments refer to line 210)
                                                     messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
                                                     ArrayList<Message> userIsSender = new ArrayList<>();
@@ -563,7 +585,7 @@ public class Server {
                                                 //System.out.println("Choose message to edit");
                                                 choice = Integer.parseInt(reader.readLine());           // user chooses which
                                                 // message
-                                                // availible for him to edit he wants to edit
+                                                // available for him to edit he wants to edit
                                                 //System.out.println("To which message you want to change it?");
                                                 String msg = reader.readLine();                   // user enters the message
                                                 // to
@@ -601,8 +623,8 @@ public class Server {
                                                         break;
                                                     }
                                                 }
-                                                user.refreshMessages();            // refreshMessages is used to remove some of the messages in the messages field of the user, because we need to be
-                                                // manually remove some of the messages in the messages field. setMessages isn't enough, because it doesn't actually removes messages
+                                                user.refreshMessages();            // refreshMessages is used to remove some messages in the messages field of the user, because we need to be
+                                                // manually remove some messages in the messages field. setMessages isn't enough, because it doesn't actually remove messages
                                                 // it only updates its values
                                             }
                                             if (optionChoice == 0) {          // if user chooses to exit, we break from infinite loop
@@ -631,6 +653,7 @@ public class Server {
             }
             catch (Exception e) {
                 int imHereToAvoidCheckStyle;
+                e.printStackTrace();
             }
         }
     }
@@ -809,7 +832,7 @@ public class Server {
     }
 
     public static User createAccount(String email, String username, String password,
-                                     String type, ArrayList<User> users) throws LoginException {
+                                     int type, ArrayList<User> users) throws LoginException {
         for (User user : users) {
             if (user.getEmail().equals(email)) {
                 throw new LoginException("This email is already taken, please select another email");
@@ -819,8 +842,8 @@ public class Server {
             }
         }
         User answer = null;
-        if (type.equals("Seller")) {
-            answer = new Seller(email, username, password);
+        if (type == 1) {
+            answer = new Seller(username, email, password);
             try {
                 PrintWriter pw = new PrintWriter(new FileOutputStream("login.csv", true));
                 pw.println(answer.toString());
@@ -830,8 +853,8 @@ public class Server {
                 e.printStackTrace();
             }
         }
-        else if (type.equals("Buyer")) {
-            answer = new Buyer(email, username, password);
+        else if (type == 0) {
+            answer = new Buyer(username, email, password);
             try {
                 PrintWriter pw = new PrintWriter(new FileOutputStream("login.csv", true));
                 pw.println(answer.toString());
@@ -960,5 +983,70 @@ public class Server {
             e.printStackTrace();
         }
         return new User(username,email,password);
+    }
+
+    public static void addBlockedUsers(ArrayList<User> users) {
+        for (User u : users) {
+            ArrayList<String> blockedUsernames = u.getBlockedUsernames();
+            for (String bUser : blockedUsernames) {
+                u.blockUser(bUser, users);
+            }
+        }
+    }
+
+    public static void writeUsers(String filename, ArrayList<User> users) {
+        File f = new File(filename);
+        try (PrintWriter pw = new PrintWriter(new FileOutputStream(f, false))) {
+            for (User u : users) {
+                pw.print("\"" + u.getUsername() + "\",\"" + u.getEmail() + "\",\"" + u.getPassword());
+                if (u instanceof Buyer) {
+                    pw.print("\",\"b\",\"");
+                } else {
+                    pw.print("\",\"s\",\"");
+                }
+                if (u.getBlockedUsers().size() > 0) {
+                    ArrayList<User> blockedUsers = u.getBlockedUsers();
+                    ArrayList<String> blockedUsernames = new ArrayList<>();
+                    for (User bUser : blockedUsers) {
+                        blockedUsernames.add(bUser.getUsername());
+                    }
+                    for (int i = 0; i < blockedUsernames.size(); i++) {
+                        if (i != blockedUsers.size() - 1) {
+                            pw.print(blockedUsernames.get(i) + ",");
+                        } else {
+                            pw.print(blockedUsernames.get(i) + "\"");
+                        }
+                    }
+                } else {
+                    if (u instanceof Seller) {
+                        if (((Seller) u).getStores().size() > 0) {
+                            pw.print("\"");
+                        } else {
+                            pw.print("\",");
+                        }
+                    } else {
+                        pw.print("\"");
+                    }
+                }
+                if (u instanceof Seller) {
+                    if (((Seller) u).getStores().size() > 1) {
+                        for (int i = 0; i < ((Seller) u).getStores().size(); i++) {
+                            if (i != ((Seller) u).getStores().size() - 1) {
+                                pw.print(",\"" + ((Seller) u).getStores().get(i) + ",");
+                            } else {
+                                pw.print(((Seller) u).getStores().get(i) + "\"");
+                            }
+                        }
+                    } else if (((Seller) u).getStores().size() == 1) {
+                        pw.print(",\"" + ((Seller) u).getStores().get(0) + "\"");
+                    } else {
+                        pw.print("\"\"");
+                    }
+                }
+                pw.println();
+            }
+        } catch (FileNotFoundException e) {
+            JOptionPane.showMessageDialog(null, "That file could not be found", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

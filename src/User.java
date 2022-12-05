@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
@@ -14,12 +15,13 @@ import java.util.ArrayList;
  *
  */
 
-public class User {
+public class User implements Serializable {
     // Main fields in the User is email, username, and password
     // It also has additional ArrayList field, which saves the blockedUsers
     private String email;
     private final String username;
-    private ArrayList<Message> messages = new ArrayList<>();             // this is an important field that saves all messages that are related to that user
+    private ArrayList<Message> messages = new ArrayList<>();             // this is an important field that saves
+    // all messages that are related to that user
                                                                          // we use specific method to parse through messages and assign those values to the messages field
 
     private String password;
@@ -197,8 +199,4 @@ public class User {
         return blockedUsers;
     }
 
-    @Override
-    public String toString() {
-        return "";
-    }
 }
