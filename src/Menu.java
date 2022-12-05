@@ -3,6 +3,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.net.ConnectException;
+import java.net.Socket;
 import java.util.*;
 
 /**
@@ -23,6 +25,29 @@ public class Menu {
         ArrayList<User> users = readUsers("login.csv");                 // Each line in the "login.csv" file is a User object, using special method we read whole file into an ArrayList of Users
         ArrayList<Store> stores = readStores("stores.csv", users);      // We do the same thing with the stores objects
         addBlockedUsers(users);
+        /*boolean serverConnection = false;
+        while (!serverConnection) {
+            int port = 0;
+            do {
+                try {
+                    port = Integer.parseInt(JOptionPane.showInputDialog(null,
+                            "Enter port number (4242) ", "Client", JOptionPane.QUESTION_MESSAGE));
+                } catch (NumberFormatException n2) {
+                    if (port == 0) {
+                        return;
+                    }
+                    JOptionPane.showMessageDialog(null,
+                            "Enter a valid number!", "Client", JOptionPane.ERROR_MESSAGE);
+                }
+            } while (port == 0);
+            try {
+                Socket socket = new Socket("localhost", port);
+                serverConnection = true;
+            } catch (ConnectException ce) {
+                JOptionPane.showMessageDialog(null,
+                        "A connection couldn't be made", "Client", JOptionPane.ERROR_MESSAGE);
+            }
+        }*/
         while (online) {
             String title = "Welcome to the Marketplace Messaging System!";
             String[] options;
@@ -924,8 +949,13 @@ public class Menu {
                                                 newAccountInfo = JOptionPane.showInputDialog(null,
                                                         "Enter new email: ", title, JOptionPane.PLAIN_MESSAGE);
                                                 // user types new email
-                                                if (newAccountInfo.contains("@") && newAccountInfo.contains(".")) {
+                                                if (newAccountInfo == null) {
+                                                    break;
+                                                } else if (newAccountInfo.contains("@") && newAccountInfo.contains(
+                                                        ".")) {
                                                     currUser.setEmail(newAccountInfo); // if new email is valid changes current user's email to new email
+                                                    JOptionPane.showMessageDialog(null, String.format("Email changed " +
+                                                            "to: %s%n", newAccountInfo), title, JOptionPane.INFORMATION_MESSAGE);
                                                 } else {
                                                     // user inputs an invalid email (does not contain @ and .)
                                                     JOptionPane.showMessageDialog(null, "That email was not valid", title, JOptionPane.WARNING_MESSAGE);
@@ -933,20 +963,21 @@ public class Menu {
                                                 }
                                             } while (newAccountInfo.isEmpty());
                                             // shows that the user's email was changed
-                                            JOptionPane.showMessageDialog(null, String.format("Email changed " +
-                                                    "to: %s%n", newAccountInfo), title, JOptionPane.INFORMATION_MESSAGE);
                                             break;
                                         case 1:
                                             // user selects change password
                                             newAccountInfo = JOptionPane.showInputDialog(null,
                                                     "Enter new password: ", title, JOptionPane.PLAIN_MESSAGE);
-                                            ; //
                                             // user types new password
-                                            currUser.setPassword(newAccountInfo);
-                                            // changes user's password to new password
-                                            // shows that the user's password was changed
-                                            JOptionPane.showMessageDialog(null, String.format("Password " +
-                                                    "changed to: %s%n", newAccountInfo), title, JOptionPane.INFORMATION_MESSAGE);
+                                            if (newAccountInfo != null) {
+                                                // changes user's password to new password
+                                                currUser.setPassword(newAccountInfo);
+                                                // shows that the user's password was changed
+                                                JOptionPane.showMessageDialog(null, String.format("Password " +
+                                                        "changed to: %s%n", newAccountInfo), title, JOptionPane.INFORMATION_MESSAGE);
+                                            } else {
+                                                break;
+                                            }
                                             break;
                                         default:
                                             break;
@@ -990,7 +1021,9 @@ public class Menu {
                                                     " of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null,
                                                     userArr, userArr[0]);
                                             // user enters username of user to block
-                                            if (currUser.blockUser(blockUsername, users)) {
+                                            if (blockUsername == null) {
+                                                break;
+                                            } else if (currUser.blockUser(blockUsername, users)) {
                                                 // if that user exist they are blocked
                                                 JOptionPane.showMessageDialog(null, blockUsername + " blocked",
                                                         title, JOptionPane.INFORMATION_MESSAGE);
@@ -1008,9 +1041,12 @@ public class Menu {
                                                 }
                                                 String unblockUsername = (String) JOptionPane.showInputDialog(null, "Enter " +
                                                                 "name of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null
-                                                        , blockedUsersArr, blockedUsersArr[0]); //
+                                                        , blockedUsersArr, blockedUsersArr[0]);
+                                                System.out.println(unblockUsername);
                                                 // user enters username of user to unblock
-                                                if (currUser.unblockUser(unblockUsername, users)) {
+                                                if (unblockUsername == null) {
+                                                    break;
+                                                } else if (currUser.unblockUser(unblockUsername, users)) {
                                                     // if that user is currently blocked they are unblocked
                                                     JOptionPane.showMessageDialog(null, unblockUsername + " unblocked",
                                                             title, JOptionPane.INFORMATION_MESSAGE);
@@ -1029,10 +1065,7 @@ public class Menu {
                                             break;
                                     }
                                     writeUsers("login.csv", users); // writes changes to login.csv file
-                                } else if (choice == 3) {
-
-
-                                    if (currUser instanceof Seller) {
+                                } else if (choice == 3 && currUser instanceof Seller) {
                                         // if user is seller allow user to create store
                                         StringBuilder userStores = new StringBuilder("Your Stores: \n");
                                         for (String storeName : ((Seller) currUser).getStores()) {
@@ -1046,8 +1079,6 @@ public class Menu {
                                         writeStores("stores.csv", stores); // updates stores.csv
                                         writeUsers("login.csv", users); // updates login.csv
                                         break;
-                                    }
-
                                 } else {
                                     break;
                                 }
