@@ -100,5 +100,17 @@ public class Buyer extends User {
         }
         return sortMessages.toString();
     }
+
+    public String toString() {
+        String blockedList = "";
+        for (User user : getBlockedUsers()) {
+            blockedList += user.getUsername() + ",";
+        }
+        blockedList = blockedList.substring(0, blockedList.length()-1);
+
+        String ans = String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"", getUsername(), getEmail(),
+                getPassword(), "b", blockedList);
+        return ans;
+    }
     
 }
