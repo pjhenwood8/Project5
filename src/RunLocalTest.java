@@ -283,12 +283,12 @@ public class RunLocalTest {
                     + "pj6@gmail.com" + System.lineSeparator() + "PJ6" + System.lineSeparator() + "stark" + System.lineSeparator() + "buyer" + System.lineSeparator());
             File testFile = new File("test.csv");
             try {
-                assertEquals(new Buyer("PJ1","pj1@gmail.com","stark").getEmail(), Menu.createAccount(testScannner,"test.csv").getEmail());
-                assertEquals(new Buyer("PJ2","pj2@gmail.com","stark").getMessages(), Menu.createAccount(testScannner,"test.csv").getMessages());
-                assertEquals(new Buyer("PJ3","pj3@gmail.com","stark").getPassword(), Menu.createAccount(testScannner,"test.csv").getPassword());
-                assertEquals(new Buyer("PJ4","pj4@gmail.com","fire").getBlockedUsers(), Menu.createAccount(testScannner,"test.csv").getBlockedUsers());
-                assertEquals(new Buyer("PJ5","pj5@gmail.com","fire").getBlockedUsernames(), Menu.createAccount(testScannner,"test.csv").getBlockedUsernames());
-                assertEquals(new Buyer("PJ6","pj6@gmail.com","fire").getClass(), Menu.createAccount(testScannner,"test.csv").getClass());
+                assertEquals(new Buyer("PJ1","pj1@gmail.com","stark").getEmail(), Menu.createAccount("test.csv").getEmail());
+                assertEquals(new Buyer("PJ2","pj2@gmail.com","stark").getMessages(), Menu.createAccount("test.csv").getMessages());
+                assertEquals(new Buyer("PJ3","pj3@gmail.com","stark").getPassword(), Menu.createAccount("test.csv").getPassword());
+                assertEquals(new Buyer("PJ4","pj4@gmail.com","fire").getBlockedUsers(), Menu.createAccount("test.csv").getBlockedUsers());
+                assertEquals(new Buyer("PJ5","pj5@gmail.com","fire").getBlockedUsernames(), Menu.createAccount("test.csv").getBlockedUsernames());
+                assertEquals(new Buyer("PJ6","pj6@gmail.com","fire").getClass(), Menu.createAccount("test.csv").getClass());
             } catch(AssertionError e) {
                 e.printStackTrace();
             }
