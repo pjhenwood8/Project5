@@ -81,7 +81,7 @@ public class Server {
                     oos.writeObject(user);
                     if (user != null) {
                         choice = Integer.parseInt(reader.readLine());
-                        if (choice == 1) {       // MESSAGES / STATISTICS / ACCOUNT / EXIT
+                        if (choice == 0) {       // MESSAGES / STATISTICS / ACCOUNT / EXIT
                             if (user instanceof Buyer) {
                                 ArrayList<Message> messageHistory = null;
                                 choice = Integer.parseInt(reader.readLine());
@@ -636,16 +636,13 @@ public class Server {
                                 saveMessages(user);
                             }
                         }
+                        else if (choice == 1) {        // MESSAGES / STATISTICS / ACCOUNT / EXIT
+
+                        }
                         else if (choice == 2) {        // MESSAGES / STATISTICS / ACCOUNT / EXIT
 
                         }
-                        else if (choice == 3) {        // MESSAGES / STATISTICS / ACCOUNT / EXIT
-
-                        }
-                        else if (choice == 0) {        // MESSAGES / STATISTICS / ACCOUNT / EXIT
-
-                        }
-                        else {
+                        else {        // MESSAGES / STATISTICS / ACCOUNT / EXIT
 
                         }
                     }
