@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class Server {
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(4242);
-        ArrayList<Message> allMessages = readWholeFile();
+        //ArrayList<Message> allMessages = readWholeFile();
         ArrayList<User> allUsers = readUsers("login.csv");
         ArrayList<Store> allStores = readStores("stores.csv", allUsers);
 
@@ -388,10 +388,9 @@ public class Server {
         }
     }
 
-    public static ArrayList<Message> readWholeFile() throws IOException {             // this method is responsible for
-        // reading
-        // the messages.csv file, and converting the every line there
-        // to the Message object. Method return ArrayList of those Message objects
+    public static ArrayList<Message> readWholeFile() throws IOException {
+        // this method is responsible for reading the messages.csv file, and converting the every line there to the
+        // Message object. Method return ArrayList of those Message objects
         ArrayList<Message> fileContent = new ArrayList<>();
         BufferedReader bfr = new BufferedReader(new FileReader("messages.csv"));
         String st;
