@@ -328,12 +328,13 @@ public class Server {
                                                     ArrayList<Message> userIsSender = new ArrayList<>();
                                                     int i = 0;
                                                     while (i < messageHistory.size()) {
-                                                        userIsSender.add(messageHistory.get(i));
-                                                        System.out.printf("[%d] " + messageHistory.get(i).toString(), i + 1);
+                                                        userIsSender.add(messageHistory.get(i));       //
+                                                        // userIsSender is basically all messages
+//                                                        System.out.printf("[%d] " + messageHistory.get(i).toString(), i + 1);
                                                         i++;
                                                     }
-                                                    System.out.println("Choose message to delete");
-                                                    choice = Integer.parseInt(scanner.nextLine());
+                                                    //System.out.println("Choose message to delete");
+                                                    choice = Integer.parseInt(reader.readLine());
                                                     Message temp = userIsSender.get(choice - 1);
                                                     ArrayList<Message> allUserMessages = user.getMessages();
                                                     for (int j = 0; j < allUserMessages.size(); j++) {
@@ -354,17 +355,252 @@ public class Server {
                                                     break;
                                                 }
                                             }
-                                        } else {
-                                            System.out.println("Please enter a valid number");
+                                        }
+                                        // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
+                                        // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
+                                        else {
+                                            writer.write("Please enter a valid number");
+                                            writer.println();
+                                            writer.flush();
                                         }
                                     }
                                     saveMessages(user);                        // saves changed to the messages.csv after finishing the messages part of the program
-                                    break;
                                 } else if (choice == 0) {            //WRITE TO STORE/ WRITE TO SELLER / EXIT
-
+                                    break;
                                 }
                             } else if (user instanceof Seller) {
+                                while (true) {
+                                    ArrayList<Message> messageHistory;
+                                        /*
+                                        parseUsers(user) parse through messages.csv and collects a list of users, with which
+                                        user had conversations before. That way we are able to avoid situation where messages not
+                                        related to the user are being used.
+                                        */
+                                    String[] listOfUsers = parseUsers(user);
+//                                    for (int i = 0; i < listOfUsers.length; i++) {
+//                                        System.out.printf("[%d] %s%n", i + 1, listOfUsers[i]);          // Displays every user in the listOfUsers list
+//                                    }
+//                                    System.out.printf("[%d] %s%n", 0, "Start new dialog");           // We provide an option to start new dialog
+//                                    System.out.printf("[%d] %s%n", -1, "Exit");                      // We provide an option to exit the messages part of the program, to view statistics or change account settings
 
+                                    choice = Integer.parseInt(reader.readLine());
+
+                                    int receiveUser = choice;          // He makes the choice
+                                    if (receiveUser == -1) {
+                                        break;                                          // If user chooses to exit, we break the infinite loop, and user is able to choose statistics or account settings
+                                    }
+                                    if (receiveUser == 0) {                                          // dialog with new user
+
+//                                        System.out.println("List of Available Buyers to Message: ");
+                                        ArrayList<String> buyerUserNames = new ArrayList<>();
+                                        for (User u : allUsers) {
+                                            if (u instanceof Buyer) {
+                                                buyerUserNames.add(u.getUsername());
+                                            }
+                                        }
+                                        oos.writeObject(buyerUserNames);
+                                        oos.flush();
+
+//                                        System.out.println();
+//                                        System.out.println("Enter name of user:");
+                                        String newUser = reader.readLine();         // Enter name of the new user
+                                        boolean alreadyMessaged = false;
+                                        for (String u : listOfUsers) {
+                                            if (u.equals(newUser)) {
+                                                alreadyMessaged = true;                 // if you already messaged the user before, it will show this message that you already messaged him before
+                                                writer.write("You already messaged this user");
+                                                writer.println();
+                                                writer.flush();
+                                            }
+                                        }
+                                        boolean flag = true;           // This flag is responsible for identifying if sender and receiver are the same type
+                                        boolean flag1 = true;          // This flag is responsible for showing if user exists
+                                        boolean flag2 = true;          // This flag is responsible for checking if user to which you are texting blocked you, or you blocked that user before
+                                        for (User value : allUsers) {
+                                            if (value.getUsername().equals(newUser)) {
+                                                flag1 = false;          // flag1 = false; means that user to which you are trying to text indeed exists
+                                                if (value instanceof Seller) {
+                                                    writer.write("You can't write to Seller, because you are Seller " +
+                                                        "yourself");
+                                                    writer.println();
+                                                    writer.flush();
+                                                    flag = false;       // means that user to which you are trying to text is also an instance of Seller, which should be possible
+                                                    // you should only be able to text Buyers as a Seller
+                                                } else if (user.getBlockedUsers().contains(value) || value.getBlockedUsers().contains(user)) {
+                                                    writer.write("You can't write to this user because they are blocked");
+                                                    writer.println();
+                                                    writer.flush();
+                                                    flag2 = false;      // flag2 = false; means that neither of you blocked each other
+                                                }
+                                            }
+                                        }
+                                        if (flag1) {     // if flag1 is true, user does NOT exist
+                                            writer.write("USER DOES NOT EXIST");
+                                            writer.println();
+                                            writer.flush();
+                                        } else if (flag && flag2 && !alreadyMessaged) {     // this code runs if
+                                            // user exists, user is Buyer, you didn't block each other
+
+                                            String mes = reader.readLine();               // user enters the message he would
+                                            // want to send to new user
+                                            ArrayList<Message> temp = user.getMessages();  // creates new ArrayList with user messages
+                                            temp.add(new Message(user.getUsername(), newUser, mes));    // adds new message to that ArrayList
+                                            user.setMessages(temp);                        // updates the messages field on the user
+                                            messageHistory = parseMessageHistory(user, newUser);     // after the messages field was updated, we update the messageHistory and print that out
+
+//                                            for (Message message : messageHistory) {
+//                                                System.out.print(message.toString());                     //we print their message history
+//                                            }
+                                            oos.writeObject(messageHistory);
+                                            oos.flush();
+                                        }
+                                    } else if (receiveUser >= 1) {           // if user doesn't choose to start new dialog or exit the program
+                                        // receiveUser is to view conversations you had before with other users
+                                        while (true) {
+                                            messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);        // update messageHistory to print that out
+                                            oos.writeObject(messageHistory);
+                                            oos.flush();
+//                                            for (Message value : messageHistory) {
+//                                                if (value.getMessage().contains("\\n")) {        // this part of the code is here in case if message has multiple lines in it
+//                                                    String ansMes = value.getMessage().replaceAll("\\\\n", "\n");  // it replaces signs of new lines, to actual new lines
+//                                                    String ans = String.format("%s   (%s -> %s)%n%s%n", value.getTime(), value.getSender(), value.getReceiver(), ansMes);  // same implementation as in Message class, but with specific message string
+//                                                    System.out.print(ans);
+//                                                } else
+//                                                    System.out.print(value);     // if it's regular one line message, then it uses basic toString() method of Message class
+//                                            }
+//                                            System.out.println();
+                                                /* User is presented with 5 options of what they can in the Message part with specific user
+                                                   1) Write new message
+                                                   when writing new message you are presented with 2 options
+                                                        1) Either write a regular message
+                                                            you type a message and it send it to the receiver
+                                                        2) Upload a txt file, contents of which will be included in the message
+                                                            it will read through the file content and add new lines where needed
+                                                   2) Edit message
+                                                   when editing messages you can only edit messages that you send to another user, YOU CAN"T EDIT ANOTHER USERS MESSAGES
+                                                   3) Delete message
+                                                   when deleting messages, message won't be deleted for another user. There are special boolean fields in the messages.csv
+                                                   that are responsible for not showing message if it was deleted from either side of the conversation
+                                                   Compared to EDIT MESSAGE, you can delete whether message you wish for, because it's only one-sided
+                                                   0) Exit, it returns you back to the userList of all users you had conversations before
+                                                   -1) If you want to export your current message history, all you need is to enter -1 and write name of the csv file you want to save your changes to
+                                                */
+//                                            System.out.println("[1] Write message                         [2] Edit message");
+//                                            System.out.println("[3] Delete message                        [0] Exit");
+//                                            System.out.println("[-1] Export this message history to csv file");
+
+                                            int optionChoice = Integer.parseInt(reader.readLine());            // enters which
+                                            // option you want to do
+                                            if (optionChoice == -1) {            // exporting messages
+//                                                System.out.println("Enter name of the file to which you want to export your message history");
+                                                String fileName = reader.readLine();            // enters the file name
+                                                PrintWriter pw = new PrintWriter(new FileOutputStream(fileName,false));
+                                                for (Message msg : messageHistory) {
+                                                    // this line writes Message object in the same manner as it does in main "messages.csv" file
+                                                    String ans = String.format("\"%d\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"", msg.getId(), msg.getTime(), msg.getSender(), msg.getReceiver(), msg.getMessage(), msg.isDelBySender(), msg.isDelByReceiver());
+                                                    pw.write(ans);
+                                                    pw.println();
+                                                    pw.flush();
+                                                }
+//                                                System.out.println("Your message history was successfully saved to "+fileName);          // confirmation that history was saved
+//                                                System.out.println();
+                                            }
+                                            if (optionChoice == 1) {            // writing new messages
+                                                //System.out.println("You want to send a message or upload a txt " +
+                                                //      "file?\n[1] Send message\n[2] Upload file");    // you are
+                                                // presented with two options as described before
+                                                // 1 - regular message          2 - upload a txt file
+                                                int fileOrText = Integer.parseInt(scanner.nextLine());
+                                                if (fileOrText == 1) {       // regular message
+                                                    System.out.println("Enter message: ");
+                                                    String mes = scanner.nextLine();
+                                                    ArrayList<Message> temp = user.getMessages();
+                                                    temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
+                                                    user.setMessages(temp);        // updates the messages field of the user to the renewed messageHistory
+                                                } else if (fileOrText == 2) {      //uploading files
+                                                    System.out.println("Enter name of txt file: ");
+                                                    String fileName = scanner.nextLine();         // enters name of the file
+                                                    String mes = "";
+                                                    try {
+                                                        ArrayList<String> tempArr = new ArrayList<>();
+                                                        BufferedReader bfr = new BufferedReader(new FileReader(fileName));
+                                                        String st;
+                                                        while ((st = bfr.readLine()) != null) {
+                                                            tempArr.add(st);                     // reads whole file and saves lines to ArrayList
+                                                        }
+                                                        mes = String.join("\\n",tempArr);              // combine all lines in the file by \\n which shows up as \n in the messages.csv file
+                                                        // we read it as new line when writing all messages
+                                                        ArrayList<Message> temp = user.getMessages();
+                                                        temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
+                                                        user.setMessages(temp);                  // updates the messages field of the user
+                                                    }
+                                                    catch (FileNotFoundException e) {         // if user enters file that does not exist
+                                                        System.out.println("I'm sorry but that file does not exist");
+                                                    }
+                                                }
+                                            }
+                                            if (optionChoice == 2) {          // editing messages
+                                                messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
+                                                ArrayList<Message> userIsSender = new ArrayList<>();         // here only messages that are sends by the current user will be saved
+                                                int i = 0;
+                                                int z = 0;
+                                                while (z < messageHistory.size()) {
+                                                    if (messageHistory.get(z).getSender().equals(user.getUsername())) {      // checks if message is sent by the main user
+                                                        userIsSender.add(messageHistory.get(z));
+                                                        System.out.printf("[%d] " + messageHistory.get(z).toString(), i + 1);      // if message is sent by the main user, the number
+                                                        // will appear next to it
+                                                        i++;
+                                                    } else
+                                                        System.out.print(messageHistory.get(z).toString());     // if main user is receiver, then message is printed as usual with any number next to it
+                                                    z++;
+                                                }
+                                                System.out.println("Choose message to edit");
+                                                choice = Integer.parseInt(scanner.nextLine());           // user chooses which message availible for him to edit he wants to edit
+                                                System.out.println("To which message you want to change it?");
+                                                String msg = scanner.nextLine();                   // user enters the message to which user wants to change his message
+                                                Message temp = userIsSender.get(choice - 1);       // we grab value form the userIsSender which stores only messages where main user is sender
+                                                for (Message message : messageHistory) {
+                                                    if (message.getId() == temp.getId()) {
+                                                        message.setMessage(msg);                   // when we find that message in the main message history, we change its text
+                                                    }
+                                                }
+                                            }
+                                            if (optionChoice == 3) {             // deleting messages
+                                                messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);       // we save message history
+                                                ArrayList<Message> userIsSender = new ArrayList<>();         // I guess here I was kind of lazy, so userIsSender now stores every message in it
+                                                // because in deleting messages it doesn't really matter if you aren't creator of the message
+                                                // since you can delete whether message you wish for
+                                                int i = 0;
+                                                while (i < messageHistory.size()) {
+                                                    userIsSender.add(messageHistory.get(i));              // adding every message into the userIsSender arraylist
+                                                    System.out.printf("[%d] " + messageHistory.get(i).toString(), i + 1);             // printing every message with a number next to it
+                                                    i++;
+                                                }
+                                                System.out.println("Choose message to delete");
+                                                choice = Integer.parseInt(scanner.nextLine());      // user chooses which message to delete
+                                                Message temp = userIsSender.get(choice - 1);        // we assign the message user chose to Message temp variable
+                                                ArrayList<Message> allUserMessages = user.getMessages();
+                                                for (int j = 0; j < allUserMessages.size(); j++) {
+                                                    if (allUserMessages.get(j).getId() == temp.getId()) {         // finding temp message in the main allUserMessages ArrayList
+                                                        if (temp.getSender().equals(user.getUsername()))          // if main user was sender
+                                                            allUserMessages.get(j).setDelBySender(true);          // then message becomes invisible to the sender
+                                                        else                                                      // if main user was receiver
+                                                            allUserMessages.get(j).setDelByReceiver(true);        // then message becomes invisible to the receiver
+                                                        user.setMessages(allUserMessages);                        // updates the messages field of the user after deleting the message
+                                                        break;
+                                                    }
+                                                }
+                                                user.refreshMessages();            // refreshMessages is used to remove some of the messages in the messages field of the user, because we need to be
+                                                // manually remove some of the messages in the messages field. setMessages isn't enough, because it doesn't actually removes messages
+                                                // it only updates its values
+                                            }
+                                            if (optionChoice == 0) {          // if user chooses to exit, we break from infinite loop
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                saveMessages(user);
                             }
                         }
                         else if (choice == 2) {        // MESSAGES / STATISTICS / ACCOUNT / EXIT
