@@ -163,5 +163,22 @@ public class Seller extends User {
         return "";
     }
 
+    @Override
+    public String toString() {
+        String blockedList = "";
+        for (User user : getBlockedUsers()) {
+            blockedList += user.getUsername() + ",";
+        }
+        blockedList = blockedList.substring(0, blockedList.length()-1);
 
+        String storesList = "";
+        for (String store : getStores()) {
+            storesList += store + ",";
+        }
+        storesList = storesList.substring(0, storesList.length()-1);
+
+        String ans = String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"", getUsername(), getEmail(),
+                getPassword(), "s", blockedList, storesList);
+        return ans;
+    }
 }

@@ -197,5 +197,8 @@ public class User {
         return blockedUsers;
     }
 
-
+    @Override
+    public String toString() {
+        return "";
+    }
 }
