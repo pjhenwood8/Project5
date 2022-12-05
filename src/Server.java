@@ -40,6 +40,8 @@ public class Server {
                         }
                         catch (LoginException e) {
                             writer.write(e.getMessage());
+                            writer.println();
+                            writer.flush();
                         }
                     }
                     else if (choice == 0) {          // LOGIN / CREATE ACCOUNT / EXIT
@@ -296,16 +298,18 @@ public class Server {
                                                     messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
                                                     ArrayList<Message> userIsSender = new ArrayList<>();
                                                     int i = 0;
-                                                    while (i < messageHistory.size()) {
-                                                        if (messageHistory.get(i).getSender().equals(user.getUsername())) {
-                                                            userIsSender.add(messageHistory.get(i));
-                                                            //System.out.printf("[%d] " + messageHistory.get(i)
-                                                            // .toString(), i + 1);
+                                                    int z = 0;
+                                                    while (z < messageHistory.size()) {
+                                                        if (messageHistory.get(z).getSender().equals(user.getUsername())) {      // checks if message is sent by the main user
+                                                            userIsSender.add(messageHistory.get(z));
+                                                            //System.out.printf("[%d] " + messageHistory.get(z)
+                                                            // .toString(), i + 1);      // if message is sent by the main user, the number
+                                                            // will appear next to it
                                                             i++;
-                                                        } else {
-                                                            //System.out.print(messageHistory.get(i).toString());
-                                                        }
-
+                                                        } else {}
+                                                            //System.out.print(messageHistory.get(z).toString());
+                                                        // if main user is receiver, then message is printed as usual with any number next to it
+                                                        z++;
                                                     }
                                                     // System.out.println("Choose message to edit");
                                                     choice = Integer.parseInt(reader.readLine());     // user chooses
@@ -512,14 +516,14 @@ public class Server {
                                                 // 1 - regular message          2 - upload a txt file
                                                 int fileOrText = Integer.parseInt(scanner.nextLine());
                                                 if (fileOrText == 1) {       // regular message
-                                                    System.out.println("Enter message: ");
-                                                    String mes = scanner.nextLine();
+                                                    //System.out.println("Enter message: ");
+                                                    String mes = reader.readLine();
                                                     ArrayList<Message> temp = user.getMessages();
                                                     temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
                                                     user.setMessages(temp);        // updates the messages field of the user to the renewed messageHistory
                                                 } else if (fileOrText == 2) {      //uploading files
-                                                    System.out.println("Enter name of txt file: ");
-                                                    String fileName = scanner.nextLine();         // enters name of the file
+                                                    //System.out.println("Enter name of txt file: ");
+                                                    String fileName = reader.readLine();         // enters name of the file
                                                     String mes = "";
                                                     try {
                                                         ArrayList<String> tempArr = new ArrayList<>();
@@ -535,7 +539,9 @@ public class Server {
                                                         user.setMessages(temp);                  // updates the messages field of the user
                                                     }
                                                     catch (FileNotFoundException e) {         // if user enters file that does not exist
-                                                        System.out.println("I'm sorry but that file does not exist");
+                                                        writer.write("I'm sorry but that file does not exist");
+                                                        writer.println();
+                                                        writer.flush();
                                                     }
                                                 }
                                             }
@@ -554,10 +560,14 @@ public class Server {
                                                         System.out.print(messageHistory.get(z).toString());     // if main user is receiver, then message is printed as usual with any number next to it
                                                     z++;
                                                 }
-                                                System.out.println("Choose message to edit");
-                                                choice = Integer.parseInt(scanner.nextLine());           // user chooses which message availible for him to edit he wants to edit
-                                                System.out.println("To which message you want to change it?");
-                                                String msg = scanner.nextLine();                   // user enters the message to which user wants to change his message
+                                                //System.out.println("Choose message to edit");
+                                                choice = Integer.parseInt(reader.readLine());           // user chooses which
+                                                // message
+                                                // availible for him to edit he wants to edit
+                                                //System.out.println("To which message you want to change it?");
+                                                String msg = reader.readLine();                   // user enters the message
+                                                // to
+                                                // which user wants to change his message
                                                 Message temp = userIsSender.get(choice - 1);       // we grab value form the userIsSender which stores only messages where main user is sender
                                                 for (Message message : messageHistory) {
                                                     if (message.getId() == temp.getId()) {
@@ -573,11 +583,12 @@ public class Server {
                                                 int i = 0;
                                                 while (i < messageHistory.size()) {
                                                     userIsSender.add(messageHistory.get(i));              // adding every message into the userIsSender arraylist
-                                                    System.out.printf("[%d] " + messageHistory.get(i).toString(), i + 1);             // printing every message with a number next to it
+                                                    //System.out.printf("[%d] " + messageHistory.get(i).toString(),i + 1);             // printing every message with a number next to it
                                                     i++;
                                                 }
-                                                System.out.println("Choose message to delete");
-                                                choice = Integer.parseInt(scanner.nextLine());      // user chooses which message to delete
+                                                //System.out.println("Choose message to delete");
+                                                choice = Integer.parseInt(reader.readLine());      // user chooses which
+                                                // message to delete
                                                 Message temp = userIsSender.get(choice - 1);        // we assign the message user chose to Message temp variable
                                                 ArrayList<Message> allUserMessages = user.getMessages();
                                                 for (int j = 0; j < allUserMessages.size(); j++) {
