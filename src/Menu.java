@@ -590,7 +590,6 @@ public class Menu {
                                             }
                                             else {
                                                 pwServer.write(receiveUser);
-                                                pwServer.println();
                                                 pwServer.flush();
                                                 break;
                                             }
@@ -701,7 +700,6 @@ public class Menu {
                                                     }
                                                     else {
                                                         pwServer.write(optionChoice);
-                                                        pwServer.println();
                                                         pwServer.flush();
                                                         break;
                                                     }
@@ -722,7 +720,6 @@ public class Menu {
                                                         }
                                                         else {
                                                             pwServer.write(fileOrText);
-                                                            pwServer.println();
                                                             pwServer.flush();
                                                             break;
                                                         }
@@ -815,7 +812,6 @@ public class Menu {
                                                             }
                                                             else {
                                                                 pwServer.write(choice);
-                                                                pwServer.println();
                                                                 pwServer.flush();
                                                                 break;
                                                             }
@@ -875,7 +871,6 @@ public class Menu {
                                                             }
                                                             else {
                                                                 pwServer.write(choice);
-                                                                pwServer.println();
                                                                 pwServer.flush();
                                                                 break;
                                                             }
@@ -940,7 +935,6 @@ public class Menu {
                                 if (currUser instanceof Buyer) {
                                     if (alphabetical == 0) {
                                         String stats = bfrServer.readLine().replaceAll("\\\\n","\n");
-                                        System.out.println(stats);
                                         // shows user statistics in alphabetical order
                                         JOptionPane.showMessageDialog(null, stats, title, JOptionPane.INFORMATION_MESSAGE);
                                     }
