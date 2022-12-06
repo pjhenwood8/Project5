@@ -990,52 +990,60 @@ public class Menu {
                                     }
                                 } else if (choice == 2) {
                                     // user selects block/unblock users
-                                    StringBuilder blockedUsers = new StringBuilder("Blocked Users: \n");
-                                    for (User b : currUser.getBlockedUsers()) { // shows list of currently blocked users
-                                        blockedUsers.append(b.getUsername()).append("\n");
-                                    }
+                                    String blockedUsers = bfrServer.readLine();
                                     // Asks if user wants to block or unblock a user
                                     options = new String[]{"Block New User", "Unblock User", "Exit"};
-                                    choice = JOptionPane.showOptionDialog(null, blockedUsers.toString(), title,
+                                    choice = JOptionPane.showOptionDialog(null, blockedUsers, title,
                                             JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options,
                                             options[2]);
-                                    String[] blockedUsersArr = new String[currUser.getBlockedUsers().size()];
-                                    for (int i = 0; i < currUser.getBlockedUsers().size(); i++) {
-                                        blockedUsersArr[i] = currUser.getBlockedUsers().get(i).getUsername();
-                                    }
+                                    pwServer.write(choice);
+                                    pwServer.println();
+                                    pwServer.flush();
                                     switch (choice) {
                                         case 0:
                                             // user selects block user
                                             String blockUsername = (String) JOptionPane.showInputDialog(null, "Enter name" +
                                                     " of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null,
                                                     userArr, userArr[0]);
+                                            pwServer.write(blockUsername);
+                                            pwServer.println();
+                                            pwServer.flush();
                                             // user enters username of user to block
                                             if (blockUsername == null) {
                                                 break;
-                                            } else if (currUser.blockUser(blockUsername, users)) {
+                                            }
+                                            int action = bfrServer.read();
+                                            if (action == 0) {
                                                 // if that user exist they are blocked
                                                 JOptionPane.showMessageDialog(null, blockUsername + " blocked",
                                                         title, JOptionPane.INFORMATION_MESSAGE);
                                             } else {
-                                                // if they don't exist tell user
+                                                // if they are already blocked tell user
                                                 JOptionPane.showMessageDialog(null, "That user is already blocked",
                                                         title, JOptionPane.WARNING_MESSAGE);
                                             }
                                             break;
                                         case 1:
                                             // user select unblock user
+                                            String[] blockedUsersArr = null;
+                                            try {
+                                                blockedUsersArr = (String[]) ois.readObject();
+                                            } catch (ClassNotFoundException e) {
+                                                e.printStackTrace();
+                                            }
                                             if (blockedUsersArr.length > 0) {
-                                                for (int i = 0; i < currUser.getBlockedUsers().size(); i++) {
-                                                    blockedUsersArr[i] = currUser.getBlockedUsers().get(i).getUsername();
-                                                }
                                                 String unblockUsername = (String) JOptionPane.showInputDialog(null, "Enter " +
-                                                                "name of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null
-                                                        , blockedUsersArr, blockedUsersArr[0]);
-                                                System.out.println(unblockUsername);
+                                                                "name of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null,
+                                                        blockedUsersArr, blockedUsersArr[0]);
+                                                pwServer.write(unblockUsername);
+                                                pwServer.println();
+                                                pwServer.flush();
                                                 // user enters username of user to unblock
                                                 if (unblockUsername == null) {
                                                     break;
-                                                } else if (currUser.unblockUser(unblockUsername, users)) {
+                                                }
+                                                action = bfrServer.read();
+                                                if (action == 0) {
                                                     // if that user is currently blocked they are unblocked
                                                     JOptionPane.showMessageDialog(null, unblockUsername + " unblocked",
                                                             title, JOptionPane.INFORMATION_MESSAGE);
@@ -1053,20 +1061,15 @@ public class Menu {
                                             exit = true;
                                             break;
                                     }
-                                    writeUsers("login.csv", users); // writes changes to login.csv file
                                 } else if (choice == 3 && currUser instanceof Seller) {
                                         // if user is seller allow user to create store
-                                        StringBuilder userStores = new StringBuilder("Your Stores: \n");
-                                        for (String storeName : ((Seller) currUser).getStores()) {
-                                            // shows list of current stores by current user
-                                            userStores.append(storeName).append("\n");
-                                        }
+                                        String userStores = bfrServer.readLine();
                                         String storeName = JOptionPane.showInputDialog(null,
-                                                userStores.toString(), title, JOptionPane.QUESTION_MESSAGE);
+                                                userStores, title, JOptionPane.QUESTION_MESSAGE);
+                                        pwServer.write(storeName);
+                                        pwServer.println();
+                                        pwServer.flush();
                                         ((Seller) currUser).createStore(storeName); // adds new store
-                                        stores.add(new Store(storeName, 0));
-                                        writeStores("stores.csv", stores); // updates stores.csv
-                                        writeUsers("login.csv", users); // updates login.csv
                                         break;
                                 } else {
                                     break;
@@ -1086,8 +1089,6 @@ public class Menu {
                 // user leaves program
                 JOptionPane.showMessageDialog(null, "Thank you for using the messaging service", "Marketplace Messaging", JOptionPane.INFORMATION_MESSAGE);
             }
-            writeUsers("login.csv", users); // updates login.csv
-            writeStores("stores.csv", stores); // updates stores.csv
         }
     }
 

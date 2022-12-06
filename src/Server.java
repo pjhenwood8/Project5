@@ -815,6 +815,7 @@ public class Server {
                                                 } else if (newAccountInfo.contains("@") && newAccountInfo.contains(".") && !repeat) {
                                                     user.setEmail(newAccountInfo); // if new email is valid changes
                                                     // current user's email to new email
+                                                    writeUsers("login.csv", allUsers);
                                                 } else if (repeat) {
                                                     newAccountInfo = "";
                                                 } else {
@@ -834,6 +835,7 @@ public class Server {
                                             if (newAccountInfo != null) {
                                                 // changes user's password to new password
                                                 user.setPassword(newAccountInfo);
+                                                writeUsers("login.csv", allUsers);
                                             } else {
                                                 break;
                                             }
@@ -851,86 +853,80 @@ public class Server {
                                         allUsers.remove(user);
                                         choice = 3;
                                         user = null;
+                                        writeUsers("login.csv", allUsers);
                                     }
                                 } else if (choice == 2) {
                                     // user selects block/unblock users
                                     StringBuilder blockedUsers = new StringBuilder("Blocked Users: \n");
                                     for (User b : user.getBlockedUsers()) { // shows list of currently blocked users
-                                        blockedUsers.append(b.getUsername()).append("\n");
+                                        blockedUsers.append(b.getUsername()).append("\\n");
                                     }
+                                    writer.write(blockedUsers.toString());
+                                    writer.println();
+                                    writer.flush();
                                     // Asks if user wants to block or unblock a user
-                                    options = new String[]{"Block New User", "Unblock User", "Exit"};
-                                    choice = JOptionPane.showOptionDialog(null, blockedUsers.toString(), title,
-                                            JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options,
-                                            options[2]);
-                                    String[] blockedUsersArr = new String[currUser.getBlockedUsers().size()];
-                                    for (int i = 0; i < currUser.getBlockedUsers().size(); i++) {
-                                        blockedUsersArr[i] = currUser.getBlockedUsers().get(i).getUsername();
+                                    choice = reader.read();
+                                    String[] blockedUsersArr = new String[user.getBlockedUsers().size()];
+                                    for (int i = 0; i < user.getBlockedUsers().size(); i++) {
+                                        blockedUsersArr[i] = user.getBlockedUsers().get(i).getUsername();
                                     }
                                     switch (choice) {
                                         case 0:
                                             // user selects block user
-                                            String blockUsername = (String) JOptionPane.showInputDialog(null, "Enter name" +
-                                                            " of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null,
-                                                    userArr, userArr[0]);
+                                            String blockUsername = reader.readLine();
                                             // user enters username of user to block
                                             if (blockUsername == null) {
                                                 break;
-                                            } else if (currUser.blockUser(blockUsername, users)) {
+                                            } else if (user.blockUser(blockUsername, allUsers)) {
                                                 // if that user exist they are blocked
-                                                JOptionPane.showMessageDialog(null, blockUsername + " blocked",
-                                                        title, JOptionPane.INFORMATION_MESSAGE);
+                                                writer.write(0);
+                                                writer.flush();
                                             } else {
                                                 // if they don't exist tell user
-                                                JOptionPane.showMessageDialog(null, "That user is already blocked",
-                                                        title, JOptionPane.WARNING_MESSAGE);
+                                                writer.write(1);
+                                                writer.flush();
                                             }
                                             break;
                                         case 1:
                                             // user select unblock user
+                                            oos.writeObject(blockedUsersArr);
+                                            oos.flush();
                                             if (blockedUsersArr.length > 0) {
-                                                for (int i = 0; i < currUser.getBlockedUsers().size(); i++) {
-                                                    blockedUsersArr[i] = currUser.getBlockedUsers().get(i).getUsername();
-                                                }
-                                                String unblockUsername = (String) JOptionPane.showInputDialog(null, "Enter " +
-                                                                "name of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null
-                                                        , blockedUsersArr, blockedUsersArr[0]);
-                                                System.out.println(unblockUsername);
+                                                String unblockUsername = reader.readLine();
                                                 // user enters username of user to unblock
                                                 if (unblockUsername == null) {
                                                     break;
-                                                } else if (currUser.unblockUser(unblockUsername, users)) {
+                                                } else if (user.unblockUser(unblockUsername, allUsers)) {
                                                     // if that user is currently blocked they are unblocked
-                                                    JOptionPane.showMessageDialog(null, unblockUsername + " unblocked",
-                                                            title, JOptionPane.INFORMATION_MESSAGE);
+                                                    writer.write(0);
+                                                    writer.flush();
                                                 } else {
                                                     // if they aren't blocked tell user
-                                                    JOptionPane.showMessageDialog(null, "That user is not blocked",
-                                                            title, JOptionPane.INFORMATION_MESSAGE);
+                                                    writer.write(1);
+                                                    writer.flush();
                                                 }
-                                            } else {
-                                                JOptionPane.showMessageDialog(null, "This user has no other users " +
-                                                        "blocked", title, JOptionPane.WARNING_MESSAGE);
                                             }
                                             break;
                                         default:
                                             exit = true;
                                             break;
                                     }
-                                    writeUsers("login.csv", users); // writes changes to login.csv file
-                                } else if (choice == 3 && currUser instanceof Seller) {
+                                    writeUsers("login.csv", allUsers); // writes changes to login.csv file
+                                } else if (choice == 3 && user instanceof Seller) {
                                     // if user is seller allow user to create store
                                     StringBuilder userStores = new StringBuilder("Your Stores: \n");
-                                    for (String storeName : ((Seller) currUser).getStores()) {
+                                    for (String storeName : ((Seller) user).getStores()) {
                                         // shows list of current stores by current user
                                         userStores.append(storeName).append("\n");
                                     }
-                                    String storeName = JOptionPane.showInputDialog(null,
-                                            userStores.toString(), title, JOptionPane.QUESTION_MESSAGE);
-                                    ((Seller) currUser).createStore(storeName); // adds new store
-                                    stores.add(new Store(storeName, 0));
-                                    writeStores("stores.csv", stores); // updates stores.csv
-                                    writeUsers("login.csv", users); // updates login.csv
+                                    writer.write(userStores.toString());
+                                    writer.println();
+                                    writer.flush();
+                                    String storeName = reader.readLine();
+                                    ((Seller) user).createStore(storeName); // adds new store
+                                    allStores.add(new Store(storeName, 0));
+                                    writeStores("stores.csv", allStores); // updates stores.csv
+                                    writeUsers("login.csv", allUsers); // updates login.csv
                                     break;
                                 } else {
                                     break;
