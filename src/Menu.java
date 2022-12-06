@@ -46,11 +46,13 @@ public class Menu {
         PrintWriter pwServer = new PrintWriter(socket.getOutputStream());
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
         ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+        String email = "";
+        String pass = "";
         while (online) {
             String title = "Welcome to the Marketplace Messaging System!";
             String[] options;
             boolean loggingIn = true;
-            boolean loggedIn;
+            boolean loggedIn = false;
             User currUser = null;
             while (loggingIn) {                                                  // An infinite loop that breaks when
                 // user is able to log in
@@ -60,26 +62,25 @@ public class Menu {
                         JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[2]);
                 pwServer.write(choice);
                 pwServer.flush();
-                String email;
-                String pass;
                 String userName;
                 boolean invBuyer = true;
                 switch (choice) {
                     case 0:
                         // If user wants to log in into existing acc, if it's successful, infinite loop breaks
-                        email = JOptionPane.showInputDialog(null, "Please enter your email:", title,
-                                JOptionPane.PLAIN_MESSAGE);
+                        do {
+                            email = JOptionPane.showInputDialog(null, "Please enter your email:", title,
+                                    JOptionPane.PLAIN_MESSAGE);
+                        } while (email == null);
                         pwServer.write(email);
                         pwServer.println();
                         pwServer.flush();
-                        pass = JOptionPane.showInputDialog(null, "Please enter your password:", title,
-                                JOptionPane.PLAIN_MESSAGE);
+                        do {
+                            pass = JOptionPane.showInputDialog(null, "Please enter your password:", title,
+                                    JOptionPane.PLAIN_MESSAGE);
+                        } while (pass == null);
                         pwServer.write(pass);
                         pwServer.println();
                         pwServer.flush();
-                        if (currUser != null) {
-                            loggingIn = false;                  // to end an infinite loop
-                        }
                         break;
                     case 1:
                         do {
@@ -145,29 +146,30 @@ public class Menu {
                         online = false;           // When online is false, program stops working
                         break;
                 }
-                try {
-                    currUser = (User) ois.readObject();
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
-                if (currUser != null) {
-                    loggingIn = false;
-                } else {
-                    if (choice == 0) {
-                        JOptionPane.showMessageDialog(null, "Your email or password was incorrect", "Login",
-                                JOptionPane.WARNING_MESSAGE);
+                if (loggingIn) {
+                    try {
+                        currUser = (User) ois.readObject();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    if (currUser != null) {
+                        loggingIn = false;
+                        loggedIn = true;
+                        JOptionPane.showMessageDialog(null, "Successfully logged in as " + currUser.getUsername(), "Marketplace " +
+                                "Messaging System", JOptionPane.INFORMATION_MESSAGE);
                     } else {
-                        JOptionPane.showMessageDialog(null, "That account couldn't be created because that email " +
-                                        "or username is already in use", "Login", JOptionPane.WARNING_MESSAGE);
+                        if (choice == 0) {
+                            JOptionPane.showMessageDialog(null, "Your email or password was incorrect", "Login",
+                                    JOptionPane.WARNING_MESSAGE);
+                        } else {
+                            JOptionPane.showMessageDialog(null, "That account couldn't be created because that email " +
+                                    "or username is already in use", "Login", JOptionPane.WARNING_MESSAGE);
+                        }
                     }
                 }
             }
 
             // Confirmation message, when user is able to log in
-            JOptionPane.showMessageDialog(null, "Successfully logged in as " + currUser.getUsername(), "Marketplace " +
-                    "Messaging System", JOptionPane.INFORMATION_MESSAGE);
-            loggedIn = true;
-
             int numOfBuyers = 0;
             int numOfSellers = 0;
             for (User u : users) {
@@ -490,7 +492,6 @@ public class Menu {
                                     }
                                     else {
                                         pwServer.write(makeChoice);
-                                        pwServer.println();
                                         pwServer.flush();
                                         break;
                                     }
@@ -553,7 +554,7 @@ public class Menu {
                                     ArrayList<Message> temp = currUser.getMessages();
                                     // tells user who is owner of the store
                                     JOptionPane.showMessageDialog(null, "Store manager's username" +
-                                            " is " + sellerObject + "Please wait for his " +
+                                            " is " + sellerObject.getUsername() + "\nPlease wait for his " +
                                             "message", title, JOptionPane.INFORMATION_MESSAGE);
 
                                     if (!flag) {              // flag is false when store doesn't exist
@@ -949,88 +950,7 @@ public class Menu {
                                         JOptionPane.showMessageDialog(null, stats, title, JOptionPane.INFORMATION_MESSAGE);
                                     }
                                     else if (alphabetical == 2) {
-                                        ArrayList<Message> allMessages = new ArrayList<>();
-                                        String word = "";
-                                        String secondWord = "";
-                                        String thirdWord = "";
-                                        int count;
-                                        int maxCount = 0;
-                                        int secondCount = 0;
-                                        int thirdCount = 0;
-                                        for (User u1 : users) {
-                                            if (u1 != currUser) {
-                                                allMessages.addAll(parseMessageHistory(currUser, u1.getUsername())); // adds all messages to an arrayList
-                                            }
-                                        }
-                                        String message = "";
-                                        for (Message m : allMessages) {
-                                            message += m.getMessage() + " "; // creates a string with all every word in all messages
-                                        }
-                                        String[] wordArr = message.split(" "); // creates a string array for every word
-                                        // Gets the most commonly used word and the number of times it is used
-                                        for (int k = 0; k < wordArr.length; k++) {
-                                            count = 1;
-                                            for (int l = k + 1; l < wordArr.length; l++) {
-                                                if (wordArr[k].equals(wordArr[l])) {
-                                                    count++;
-                                                }
-
-                                            }
-                                            if (count > maxCount) {
-                                                maxCount = count;
-                                                word = wordArr[k];
-                                            }
-                                        }
-                                        // Gets the second most commonly used word and the number of times it is used
-                                        String[] newWordArr = new String[wordArr.length - maxCount];
-                                        int i = 0;
-                                        for (String s : wordArr) {
-                                            if (!s.equals(word)) {
-                                                newWordArr[i] = s;
-                                                i++;
-                                            }
-                                        }
-                                        for (int k = 0; k < newWordArr.length; k++) {
-                                            count = 1;
-                                            for (int l = k + 1; l < newWordArr.length; l++) {
-                                                if (newWordArr[k].equals(newWordArr[l])) {
-                                                    count++;
-                                                }
-
-                                            }
-                                            if (count > secondCount) {
-                                                secondWord = newWordArr[k];
-                                                secondCount = count;
-                                            }
-                                        }
-                                        // Gets the third most commonly used word and the number of times it is used
-                                        String[] new2WordArr = new String[newWordArr.length - secondCount];
-                                        i = 0;
-                                        for (String s : newWordArr) {
-                                            if (!s.equals(secondWord)) {
-                                                new2WordArr[i] = s;
-                                                i++;
-                                            }
-                                        }
-                                        for (int k = 0; k < new2WordArr.length; k++) {
-                                            count = 1;
-                                            for (int l = k + 1; l < new2WordArr.length; l++) {
-                                                if (new2WordArr[k].equals(new2WordArr[l])) {
-                                                    count++;
-                                                }
-
-                                            }
-                                            if (count > thirdCount) {
-                                                thirdCount = count;
-                                                thirdWord = new2WordArr[k];
-                                            }
-                                        }
-                                        // Prints the first, second, and third most commonly used words
-                                        String commonWords = "The most common word in Messages is " + word + " " +
-                                                "said " + maxCount + " times\n" + "The second most common word in " +
-                                                "Messages is " + secondWord + " said " + secondCount + " times\n" +
-                                                "The third most common word in Messages is " + thirdWord + " said "
-                                                + thirdCount + " times";
+                                        String commonWords = bfrServer.readLine().replaceAll("\\\\n", "\n");
                                         JOptionPane.showMessageDialog(null, commonWords, title, JOptionPane.INFORMATION_MESSAGE);
                                     } else {
                                         break;
@@ -1058,8 +978,8 @@ public class Menu {
                             while (true) {
                                 assert currUser != null;
                                 title = String.format("%s - Account Details%n", currUser.getUsername());
-                                String userInfo = String.format("Email: %s%nPassword: %s%n", currUser.getEmail(),
-                                        currUser.getPassword());
+                                String userInfo = String.format("Email: %s%nPassword: %s%n", email,
+                                        pass);
                                 if (currUser instanceof Seller) {
                                     // shows 4 options if user is a seller
                                     options = new String[]{"Edit Account", "Delete Account", "Block/Unblock User", "Create New Store", "Exit"};
@@ -1104,6 +1024,7 @@ public class Menu {
                                             // shows that the user's email was changed
                                             JOptionPane.showMessageDialog(null, String.format("Email " +
                                                     "changed to: %s%n", newAccountInfo), title, JOptionPane.INFORMATION_MESSAGE);
+                                            email = newAccountInfo;
                                             break;
                                         case 1:
                                             // user selects change password
@@ -1119,6 +1040,7 @@ public class Menu {
                                                 // shows that the user's password was changed
                                                 JOptionPane.showMessageDialog(null, String.format("Password " +
                                                         "changed to: %s%n", newAccountInfo), title, JOptionPane.INFORMATION_MESSAGE);
+                                                pass = newAccountInfo;
                                             } else {
                                                 break;
                                             }
@@ -1217,15 +1139,19 @@ public class Menu {
                                             break;
                                     }
                                 } else if (choice == 3 && currUser instanceof Seller) {
+                                    String storeName;
+                                    do {
                                         // if user is seller allow user to create store
-                                        String userStores = bfrServer.readLine();
-                                        String storeName = JOptionPane.showInputDialog(null,
+                                        String userStores = bfrServer.readLine().replaceAll("\\\\n", "\n");
+                                         storeName = JOptionPane.showInputDialog(null,
                                                 userStores, title, JOptionPane.QUESTION_MESSAGE);
+                                    } while (storeName == null);
                                         pwServer.write(storeName);
                                         pwServer.println();
                                         pwServer.flush();
-                                        ((Seller) currUser).createStore(storeName); // adds new store
-                                        break;
+                                        JOptionPane.showMessageDialog(null, "Store " + storeName + " was added",
+                                                title, JOptionPane.INFORMATION_MESSAGE);
+                                    break;
                                 } else {
                                     break;
                                 }
@@ -1233,6 +1159,7 @@ public class Menu {
                             break;
                         default:
                             loggedIn = false;
+                            currUser = null;
                             break;
                     }
                 }

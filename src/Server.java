@@ -43,7 +43,6 @@ public class Server {
             n++;
         }
 
-        while (true) {
             try {
                 Scanner scanner = new Scanner(System.in);
                 Socket socket = serverSocket.accept();
@@ -52,34 +51,38 @@ public class Server {
                 PrintWriter writer = new PrintWriter(socket.getOutputStream());
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                User user = null;
                 while (true) {
-                    User user = null;
-                    int choice = reader.read();
-                    if (choice == 0) {                 // LOGIN / CREATE ACCOUNT / EXIT
-                        String email = reader.readLine();
-                        String password = reader.readLine();
-                        user = login(email, password, allUsers);
-                    }
-                    else if (choice == 1) {         // LOGIN / CREATE ACCOUNT / EXIT
-                        String email = reader.readLine();
-                        String username = reader.readLine();
-                        String password = reader.readLine();
-                        int type = reader.read();
-                        try {
-                            user = createAccount(email, username, password, type, allUsers);
-                        } catch (LoginException e) {
-                            user = null;
+                    boolean loggingIn = true;
+                    while (loggingIn) {
+                        int choice = reader.read();
+                        if (choice == 0) {                 // LOGIN / CREATE ACCOUNT / EXIT
+                            String email = reader.readLine();
+                            String password = reader.readLine();
+                            user = login(email, password, allUsers);
+                        } else if (choice == 1) {         // LOGIN / CREATE ACCOUNT / EXIT
+                            String email = reader.readLine();
+                            String username = reader.readLine();
+                            String password = reader.readLine();
+                            int type = reader.read();
+                            try {
+                                user = createAccount(email, username, password, type, allUsers);
+                            } catch (LoginException e) {
+                                user = null;
+                            }
+                            if (user != null) {
+                                allUsers.add(user);
+                                writeUsers("login.csv", allUsers);
+                            }
+                        } else {
+                            break;
                         }
+                        oos.writeObject(user);
                         if (user != null) {
-                            allUsers.add(user);
-                            writeUsers("login.csv", allUsers);
+                            loggingIn = false;
                         }
-                    } else {
-                        break;
                     }
-                    oos.writeObject(user);
-                    if (user != null) {
-                        choice = reader.read();
+                        int choice = reader.read();
                         if (choice == 0) {       // MESSAGES / STATISTICS / ACCOUNT / EXIT
                             if (user instanceof Buyer) {
                                 ArrayList<Message> messageHistory = null;
@@ -89,7 +92,6 @@ public class Server {
                                     oos.writeObject(allStores);   // we send the store list
                                     // in order for them to choose one to text
                                     oos.flush();
-
                                     String storeNameToMessage = reader.readLine();       // user enters the name of the store
                                     String message = reader.readLine();                  // and the message itself also
                                     User sellerToMessage = null;
@@ -870,10 +872,10 @@ public class Server {
                                     writeUsers("login.csv", allUsers); // writes changes to login.csv file
                                 } else if (choice == 3 && user instanceof Seller) {
                                     // if user is seller allow user to create store
-                                    StringBuilder userStores = new StringBuilder("Your Stores: \n");
+                                    StringBuilder userStores = new StringBuilder("Your Stores: \\n");
                                     for (String storeName : ((Seller) user).getStores()) {
                                         // shows list of current stores by current user
-                                        userStores.append(storeName).append("\n");
+                                        userStores.append(storeName).append("\\n");
                                     }
                                     writer.write(userStores.toString());
                                     writer.println();
@@ -892,16 +894,13 @@ public class Server {
                             user = null;
                             break;
                         }
-                    } else {
-                        break;
-                    }
+
                 }
             }
             catch (Exception e) {
                 int imHereToAvoidCheckStyle;
                 e.printStackTrace();
             }
-        }
     }
 
     public static ArrayList<Message> readWholeFile() throws IOException {
