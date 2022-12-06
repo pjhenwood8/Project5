@@ -709,7 +709,7 @@ public class Menu {
                                                             }
                                                             else if (mes.equals("")) {
                                                                 JOptionPane.showMessageDialog(null, "Message cannot " +
-                                                                                "be an emply string", title, JOptionPane.ERROR_MESSAGE);
+                                                                                "be an empty string", title, JOptionPane.ERROR_MESSAGE);
                                                             }
                                                             else {
                                                                 pwServer.write(mes);
@@ -731,7 +731,7 @@ public class Menu {
                                                             }
                                                             else if (fileName.equals("")) {
                                                                 JOptionPane.showMessageDialog(null, "Message cannot " +
-                                                                        "be an emply string", title, JOptionPane.ERROR_MESSAGE);
+                                                                        "be an empty string", title, JOptionPane.ERROR_MESSAGE);
                                                             }
                                                             else {
                                                                 pwServer.write(fileName);
@@ -742,7 +742,7 @@ public class Menu {
                                                             String reportFromServer = bfrServer.readLine();
                                                             if (reportFromServer.equals("Success")) {
                                                                 JOptionPane.showMessageDialog(null, "Your message was" +
-                                                                        " successfully writen from the given file",
+                                                                        " successfully written from the given file",
                                                                         title, JOptionPane.INFORMATION_MESSAGE);
                                                             }
                                                             else {

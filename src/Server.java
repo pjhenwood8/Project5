@@ -850,6 +850,8 @@ public class Server {
                                                 writer.println();
                                                 writer.flush();
                                             }
+                                            oos.writeObject(user);
+                                            oos.flush();
                                             break;
                                         case 1:
                                             // user select unblock user
