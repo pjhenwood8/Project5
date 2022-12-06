@@ -509,7 +509,7 @@ public class Server {
                                                 } else if (fileOrText == 2) {      //uploading files
                                                     //System.out.println("Enter name of txt file: ");
                                                     String fileName = reader.readLine();         // enters name of the file
-                                                    String mes = "";
+                                                    String mes;
                                                     try {
                                                         ArrayList<String> tempArr = new ArrayList<>();
                                                         BufferedReader bfr = new BufferedReader(new FileReader(fileName));
@@ -754,7 +754,6 @@ public class Server {
                                 }
                             }
                         } else if (choice == 2) {        // MESSAGES / STATISTICS / ACCOUNT / EXIT
-                            boolean exit = false;
                             while (true) {
                                 assert user != null;
                                 choice = reader.read();
@@ -790,7 +789,6 @@ public class Server {
                                                 writer.println();
                                                 writer.flush();
                                             } while (newAccountInfo.isEmpty());
-                                            // shows that the user's email was changed
                                             break;
                                         case 1:
                                             // user selects change password
@@ -821,7 +819,7 @@ public class Server {
                                     }
                                 } else if (choice == 2) {
                                     // user selects block/unblock users
-                                    StringBuilder blockedUsers = new StringBuilder("Blocked Users: \n");
+                                    StringBuilder blockedUsers = new StringBuilder("Blocked Users: \\n");
                                     for (User b : user.getBlockedUsers()) { // shows list of currently blocked users
                                         blockedUsers.append(b.getUsername()).append("\\n");
                                     }
@@ -843,11 +841,13 @@ public class Server {
                                                 break;
                                             } else if (user.blockUser(blockUsername, allUsers)) {
                                                 // if that user exist they are blocked
-                                                writer.write(0);
+                                                writer.write("yes");
+                                                writer.println();
                                                 writer.flush();
                                             } else {
                                                 // if they don't exist tell user
-                                                writer.write(1);
+                                                writer.write("no");
+                                                writer.println();
                                                 writer.flush();
                                             }
                                             break;
@@ -862,17 +862,18 @@ public class Server {
                                                     break;
                                                 } else if (user.unblockUser(unblockUsername, allUsers)) {
                                                     // if that user is currently blocked they are unblocked
-                                                    writer.write(0);
+                                                    writer.write("yes");
+                                                    writer.println();
                                                     writer.flush();
                                                 } else {
                                                     // if they aren't blocked tell user
-                                                    writer.write(1);
+                                                    writer.write("no");
+                                                    writer.println();
                                                     writer.flush();
                                                 }
                                             }
                                             break;
                                         default:
-                                            exit = true;
                                             break;
                                     }
                                     writeUsers("login.csv", allUsers); // writes changes to login.csv file
@@ -1268,7 +1269,15 @@ public class Server {
                         if (i != blockedUsers.size() - 1) {
                             pw.print(blockedUsernames.get(i) + ",");
                         } else {
-                            pw.print(blockedUsernames.get(i) + "\"");
+                            if (u instanceof Seller) {
+                                if (((Seller) u).getStores().size() > 0) {
+                                    pw.print(blockedUsernames.get(i) + "\"");
+                                } else {
+                                    pw.print(blockedUsernames.get(i) + "\",");
+                                }
+                            } else {
+                                pw.print(blockedUsernames.get(i) + "\"");
+                            }
                         }
                     }
                 } else {
