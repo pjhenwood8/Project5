@@ -132,13 +132,6 @@ public class Server {
                                             writeStores("stores.csv", allStores);
                                         }
                                     }
-
-                                    messageHistory = parseMessageHistory(user,
-                                            sellerToMessage.getUsername());          // we update our message
-                                    // history and print that out
-                                    oos.writeObject(messageHistory);
-                                    oos.flush();
-
                                     saveMessages(user);
                                 } else if (choice == 1) {              //WRITE TO STORE/ WRITE TO SELLER / EXIT
                                     // if user chooses to write to the specific Seller directly
@@ -147,6 +140,8 @@ public class Server {
 
                                         oos.writeObject(listOfUsers);       //send it to client
                                         oos.flush();
+
+                                        String[] options = (String[]) ois.readObject();
 
                                         choice = reader.read();
 
@@ -182,60 +177,26 @@ public class Server {
                                             }
 
                                             String mes = reader.readLine();
-                                            // writing message to the new user
-                                            ArrayList<Message> userMessagesTemp = user.getMessages();
-                                            userMessagesTemp.add(new Message(user.getUsername(), sellerToWrite, mes));
-                                            user.setMessages(userMessagesTemp);
-
-                                            messageHistory = parseMessageHistory(user, sellerToWrite);
-
-                                            //oos.writeObject(messageHistory);
-
-                                        } else if (receiveUser >= 1) {           // if user chooses to continue conversation with the user he had conversation before
+                                            if (!mes.equals("CONDITIONS DIDN'T MET ERROR404")) {
+                                                ArrayList<Message> userMessagesTemp = user.getMessages();
+                                                userMessagesTemp.add(new Message(user.getUsername(), sellerToWrite, mes));
+                                                user.setMessages(userMessagesTemp);
+                                            }
+                                        } else if (receiveUser >= 1 && receiveUser != options.length - 1) {           // if user chooses to continue
+                                            // conversation with the user he had conversation before
                                             while (true) {
                                                 messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
 
                                                 oos.writeObject(messageHistory);
                                                 oos.flush();
-//                                                for (Message message : messageHistory) {                            // prints out every message
-//                                                    if (message.getMessage().contains("\\n")) {
-//                                                        String ansMes = message.getMessage().replaceAll("\\\\n", "\n");
-//                                                        String ans = String.format("%s   (%s -> %s)%n%s%n", message.getTime(), message.getSender(), message.getReceiver(), ansMes);
-//                                                        System.out.print(ans);
-//                                                    } else
-//                                                        System.out.print(message);
-//                                                }
-//                                                System.out.println();
-                                                    /*
-                                                     read comments on the line 166, identical features
-                                                    */
-//                                                System.out.println("[1] Write message                         [2] Edit message");
-//                                                System.out.println("[3] Delete message                        [0] Exit");
-//                                                System.out.println("[-1] Export this message history to csv file");
+//
                                                 int optionChoice = reader.read();     //
                                                 // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
                                                 // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
-                                                if (optionChoice == 3) {                   // if he chooses to export
-                                                    // messages to the csv file
 
-                                                    //System.out.println("Enter name of the file to which you want to
-                                                    // export your message history");
-
-                                                    String fileName = reader.readLine();
-                                                    PrintWriter pw = new PrintWriter(new FileOutputStream(fileName, false));
-                                                    for (Message msg : messageHistory) {
-                                                        String ans = String.format("\"%d\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"", msg.getId(), msg.getTime(), msg.getSender(), msg.getReceiver(), msg.getMessage(), msg.isDelBySender(), msg.isDelByReceiver());
-                                                        pw.write(ans);
-                                                        pw.println();
-                                                        pw.flush();
-                                                    }
-
-//                                                    System.out.println("Your message history was successfully saved to " + fileName);
-//                                                    System.out.println();
-                                                }
                                                 // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
                                                 // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
-                                                else if (optionChoice == 0) {                             //if user
+                                                if (optionChoice == 0) {                             //if user
                                                     // chooses to write a new message
                                                     //System.out.println("You want to send a message or upload a txt
                                                     // file?\n[1] Send message\n[2] Upload file");
@@ -277,9 +238,11 @@ public class Server {
                                                 }
                                                 // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
                                                 // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
-                                                if (optionChoice == 1) {              // if user chooses to edit
+                                                else if (optionChoice == 1) {              // if user chooses to edit
                                                     // messages (for more detailed comments refer to line 210)
                                                     messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
+                                                    oos.writeObject(messageHistory);
+                                                    oos.flush();
                                                     ArrayList<Message> userIsSender = new ArrayList<>();
                                                     int i = 0;
                                                     int z = 0;
@@ -296,24 +259,30 @@ public class Server {
                                                         z++;
                                                     }
                                                     // System.out.println("Choose message to edit");
-                                                    choice = Integer.parseInt(reader.readLine());     // user chooses
-                                                    // which message to edit by typing in the number
-
-                                                    //System.out.println("To which message you want to change it?");
-                                                    String msg = reader.readLine();
-
-                                                    Message temp = userIsSender.get(choice - 1);
-                                                    for (Message message : messageHistory) {
-                                                        if (message.getId() == temp.getId()) {
-                                                            message.setMessage(msg);                        // updates the messages field of the user
+                                                    if (i > 0) {
+                                                        choice = reader.read();     // user chooses
+                                                        // which message to edit by typing in the number
+                                                        //System.out.println("To which message you want to change it?");
+                                                        String msg = reader.readLine();
+                                                        Message temp = userIsSender.get(choice - 1);
+                                                        for (Message message : messageHistory) {
+                                                            if (message.getId() == temp.getId()) {
+                                                                message.setMessage(msg);                        // updates the messages field of the user
+                                                            }
                                                         }
+                                                        saveMessages(user);
                                                     }
                                                 }
                                                 // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
                                                 // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
-                                                if (optionChoice == 2) {                 // if user chooses to delete
+                                                else if (optionChoice == 2) {                 // if user chooses to
+                                                    // delete
                                                     // the message (more detailed comments on the line 258)
                                                     messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
+
+                                                    oos.writeObject(messageHistory);
+                                                    oos.flush();
+
                                                     ArrayList<Message> userIsSender = new ArrayList<>();
                                                     int i = 0;
                                                     while (i < messageHistory.size()) {
@@ -323,24 +292,43 @@ public class Server {
                                                         i++;
                                                     }
                                                     //System.out.println("Choose message to delete");
-                                                    choice = Integer.parseInt(reader.readLine());
-                                                    Message temp = userIsSender.get(choice - 1);
-                                                    ArrayList<Message> allUserMessages = user.getMessages();
-                                                    for (int j = 0; j < allUserMessages.size(); j++) {
-                                                        if (allUserMessages.get(j).getId() == temp.getId()) {
-                                                            if (temp.getSender().equals(user.getUsername()))
-                                                                allUserMessages.get(j).setDelBySender(true);
-                                                            else
-                                                                allUserMessages.get(j).setDelByReceiver(true);
-                                                            user.setMessages(allUserMessages);
-                                                            break;
+                                                    if (i > 0) {
+                                                        choice = reader.read();
+                                                        Message temp = userIsSender.get(choice - 1);
+                                                        ArrayList<Message> allUserMessages = user.getMessages();
+                                                        for (int j = 0; j < allUserMessages.size(); j++) {
+                                                            if (allUserMessages.get(j).getId() == temp.getId()) {
+                                                                if (temp.getSender().equals(user.getUsername()))
+                                                                    allUserMessages.get(j).setDelBySender(true);
+                                                                else
+                                                                    allUserMessages.get(j).setDelByReceiver(true);
+                                                                user.setMessages(allUserMessages);
+                                                                break;
+                                                            }
                                                         }
+                                                        user.refreshMessages();
                                                     }
-                                                    user.refreshMessages();
+                                                }
+                                                else if (optionChoice == 3) {                   // if he chooses to export
+                                                    // messages to the csv file
+
+                                                    //System.out.println("Enter name of the file to which you want to
+                                                    // export your message history");
+
+                                                    String fileName = reader.readLine();
+                                                    PrintWriter pw = new PrintWriter(new FileOutputStream(fileName, false));
+                                                    for (Message msg : messageHistory) {
+                                                        String ans = String.format("\"%d\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"", msg.getId(), msg.getTime(), msg.getSender(), msg.getReceiver(), msg.getMessage(), msg.isDelBySender(), msg.isDelByReceiver());
+                                                        pw.write(ans);
+                                                        pw.println();
+                                                        pw.flush();
+                                                    }
+//                                                    System.out.println("Your message history was successfully saved to " + fileName);
+//                                                    System.out.println();
                                                 }
                                                 // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
                                                 // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
-                                                if (optionChoice == 4) {
+                                                else {
                                                     break;
                                                 }
                                             }
