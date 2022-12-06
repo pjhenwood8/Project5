@@ -431,6 +431,7 @@ public class Server {
                                             oos.writeObject(messageHistory);
                                             oos.flush();
                                         }
+
                                     } else if (receiveUser >= 1) {           // if user doesn't choose to start new dialog or exit the program
                                         // receiveUser is to view conversations you had before with other users
                                         while (true) {
