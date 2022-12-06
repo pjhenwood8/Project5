@@ -83,8 +83,9 @@ public class Server {
                         if (choice == 0) {       // MESSAGES / STATISTICS / ACCOUNT / EXIT
                             if (user instanceof Buyer) {
                                 ArrayList<Message> messageHistory = null;
-                                choice = Integer.parseInt(reader.readLine());
-                                if (choice == 1) {      //WRITE TO STORE / WRITE TO SELLER / EXIT
+                                choice = reader.read();
+
+                                if (choice == 0) {      //WRITE TO STORE / WRITE TO SELLER / EXIT
                                     oos.writeObject(allStores);   // we send the store list
                                     // in order for them to choose one to text
                                     oos.flush();
@@ -103,9 +104,9 @@ public class Server {
                                         }
                                     }
 
-                                    writer.write(sellerToMessage.getUsername());
-                                    writer.println();
+                                    oos.writeObject(sellerToMessage);
                                     writer.flush();
+
 
                                     ArrayList<Message> temp = user.getMessages();
                                     temp.add(new Message(user.getUsername(),
@@ -139,7 +140,7 @@ public class Server {
                                     oos.flush();
 
                                     saveMessages(user);
-                                } else if (choice == 2) {              //WRITE TO STORE/ WRITE TO SELLER / EXIT
+                                } else if (choice == 1) {              //WRITE TO STORE/ WRITE TO SELLER / EXIT
                                     // if user chooses to write to the specific Seller directly
                                     while (true) {
                                         String[] listOfUsers = parseUsers(user);                        // List of users with whom he had conversations before
@@ -147,7 +148,7 @@ public class Server {
                                         oos.writeObject(listOfUsers);       //send it to client
                                         oos.flush();
 
-                                        choice = Integer.parseInt(reader.readLine());
+                                        choice = reader.read();
 
                                         int receiveUser = choice;          // He makes the choice
 
@@ -164,77 +165,32 @@ public class Server {
                                                     listOfSellers.add(u.getUsername());
                                                 }
                                             }
-
+//
                                             oos.writeObject(listOfSellers);          // we send to Buyer all sellers
-                                                                                     // he can text to
+//                                                                                     // he can text to
                                             oos.flush();
 
                                             String sellerToWrite = reader.readLine();      // we ask him to write one
                                                                                            // seller name
 
-                                            boolean alreadyMessaged = false;
-                                            for (String u : listOfUsers) {
-                                                if (u.equals(sellerToWrite)) {
-                                                    alreadyMessaged = true;
-                                                    writer.write("You can't start a new dialog with a " +
-                                                            "user you already messaged!");
-                                                    writer.println();
-                                                    writer.flush();
-                                                }
-                                            }
-                                            boolean flag = true;
-                                            boolean flag1 = true;               // same logic as it was in the line 123, read comments there
-                                            boolean flag2 = true;
                                             for (User value : allUsers) {
                                                 if (value.getUsername().equals(sellerToWrite)) {
-                                                    flag1 = false;
-                                                    if (value instanceof Buyer) {
-                                                        writer.write("You can't write to Buyer, because you " +
-                                                                "are Buyer yourself");
-                                                        writer.println();
-                                                        writer.flush();
-
-                                                        flag = false;
-                                                    } else if (user.getBlockedUsers().contains(value) || value.getBlockedUsers().contains(user)) {
-                                                        writer.write("You can't write to this user because they are blocked");
-                                                        writer.println();
-                                                        writer.flush();
-                                                        flag2 = false;
-                                                    }
+                                                    oos.writeObject(value);
+                                                    oos.flush();
+                                                    break;
                                                 }
                                             }
-                                            if (flag1) {
-                                                writer.write("USER DOES NOT EXIST");
-                                                writer.println();
-                                                writer.flush();
-                                            } else if (flag && flag2 && !alreadyMessaged) {
-                                                writer.write("Write your hello message first!");
-                                                writer.println();
-                                                writer.flush();
 
-                                                String mes = reader.readLine();
-                                                // writing message to the new user
-                                                ArrayList<Message> userMessagesTemp = user.getMessages();
-                                                userMessagesTemp.add(new Message(user.getUsername(), sellerToWrite, mes));
-                                                user.setMessages(userMessagesTemp);
+                                            String mes = reader.readLine();
+                                            // writing message to the new user
+                                            ArrayList<Message> userMessagesTemp = user.getMessages();
+                                            userMessagesTemp.add(new Message(user.getUsername(), sellerToWrite, mes));
+                                            user.setMessages(userMessagesTemp);
 
-                                                messageHistory = parseMessageHistory(user, sellerToWrite);
+                                            messageHistory = parseMessageHistory(user, sellerToWrite);
 
-                                                oos.writeObject(messageHistory);
+                                            //oos.writeObject(messageHistory);
 
-//                                                            for (Message tempMessage : messageHistory) {
-//                                                                if (tempMessage.getMessage().contains("\\n")) {
-//                                                                    String ansMes = tempMessage.getMessage().replaceAll(
-//                                                                            "\\\\n", "\n");
-//                                                                    String ans = String.format("%s   (%s -> %s)" +
-//                                                                            "%n%s%n", tempMessage.getTime(),
-//                                                                            tempMessage.getSender(),
-//                                                                            tempMessage.getReceiver(), ansMes);
-//                                                                    System.out.print(ans);
-//                                                                } else
-//                                                                    System.out.print(message.toString());
-//                                                            }
-                                            }
                                         } else if (receiveUser >= 1) {           // if user chooses to continue conversation with the user he had conversation before
                                             while (true) {
                                                 messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
@@ -256,10 +212,11 @@ public class Server {
 //                                                System.out.println("[1] Write message                         [2] Edit message");
 //                                                System.out.println("[3] Delete message                        [0] Exit");
 //                                                System.out.println("[-1] Export this message history to csv file");
-                                                int optionChoice = Integer.parseInt(scanner.nextLine());     //
+                                                int optionChoice = reader.read();     //
                                                 // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
                                                 // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
-                                                if (optionChoice == -1) {                   // if he chooses to export messages to the csv file
+                                                if (optionChoice == 3) {                   // if he chooses to export
+                                                    // messages to the csv file
 
                                                     //System.out.println("Enter name of the file to which you want to
                                                     // export your message history");
@@ -278,20 +235,22 @@ public class Server {
                                                 }
                                                 // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
                                                 // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
-                                                if (optionChoice == 1) {                             //if user chooses to write a new message
+                                                else if (optionChoice == 0) {                             //if user
+                                                    // chooses to write a new message
                                                     //System.out.println("You want to send a message or upload a txt
                                                     // file?\n[1] Send message\n[2] Upload file");
                                                     choice = Integer.parseInt(reader.readLine());
                                                     int fileOrText = choice;
                                                     // 1-SEND MESSAGE   /   2-UPLOAD FILE
-                                                    if (fileOrText == 1) {              // if user sends regular message
+                                                    if (fileOrText == 0) {              // if user sends regular message
                                                         // System.out.println("Enter message: ");
                                                         String mes = reader.readLine();
                                                         ArrayList<Message> temp = user.getMessages();
                                                         temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
                                                         user.setMessages(temp);
                                                     // 1-SEND MESSAGE   /   2-UPLOAD FILE
-                                                    } else if (fileOrText == 2) {            // if user sends txt file as a message
+                                                    } else if (fileOrText == 1) {            // if user sends txt
+                                                        // file as a message
                                                         // System.out.println("Enter name of txt file: ");
                                                         String fileName = reader.readLine();
                                                         String mes = "";
@@ -306,6 +265,9 @@ public class Server {
                                                             ArrayList<Message> temp = user.getMessages();
                                                             temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
                                                             user.setMessages(temp);
+                                                            writer.write("Success");
+                                                            writer.println();
+                                                            writer.flush();
                                                         } catch (FileNotFoundException e) {
                                                             writer.write("I'm sorry but that file does not exist");
                                                             writer.println();
@@ -315,7 +277,8 @@ public class Server {
                                                 }
                                                 // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
                                                 // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
-                                                if (optionChoice == 2) {              // if user chooses to edit messages (for more detailed comments refer to line 210)
+                                                if (optionChoice == 1) {              // if user chooses to edit
+                                                    // messages (for more detailed comments refer to line 210)
                                                     messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
                                                     ArrayList<Message> userIsSender = new ArrayList<>();
                                                     int i = 0;
@@ -348,7 +311,8 @@ public class Server {
                                                 }
                                                 // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
                                                 // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
-                                                if (optionChoice == 3) {                 // if user chooses to delete the message (more detailed comments on the line 258)
+                                                if (optionChoice == 2) {                 // if user chooses to delete
+                                                    // the message (more detailed comments on the line 258)
                                                     messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
                                                     ArrayList<Message> userIsSender = new ArrayList<>();
                                                     int i = 0;
@@ -376,7 +340,7 @@ public class Server {
                                                 }
                                                 // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
                                                 // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
-                                                if (optionChoice == 0) {
+                                                if (optionChoice == 4) {
                                                     break;
                                                 }
                                             }
@@ -390,7 +354,7 @@ public class Server {
                                         }
                                     }
                                     saveMessages(user);                        // saves changed to the messages.csv after finishing the messages part of the program
-                                } else if (choice == 0) {            //WRITE TO STORE/ WRITE TO SELLER / EXIT
+                                } else if (choice == 2) {            //WRITE TO STORE/ WRITE TO SELLER / EXIT
                                     break;
                                 }
                             } else if (user instanceof Seller) {

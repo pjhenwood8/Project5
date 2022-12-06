@@ -20,7 +20,7 @@ import java.util.Map;
  */
 
 public class Menu {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         boolean online = true;
         ArrayList<User> users = readUsers("login.csv");                 // Each line in the "login.csv" file is a User object, using special method we read whole file into an ArrayList of Users
         ArrayList<Store> stores = readStores("stores.csv", users);      // We do the same thing with the stores objects
@@ -486,80 +486,132 @@ public class Menu {
                                         JOptionPane.showOptionDialog(null, "Select an option to proceed", title,
                                                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
                                                 options, options[2]);
+
+                                pwServer.write(makeChoice);
+                                pwServer.println();
+                                pwServer.flush();
+
                                 // user chooses the option
                                 if (makeChoice == 0) {           // user chooses to text the store
                                     StringBuilder listStores = new StringBuilder(String.format("List of Stores: " +
                                             "%n----------------------------------------%n"));
                                     String[] storeArr = new String[stores.size()];
+                                    ArrayList<Store> allStoresFromServer = (ArrayList<Store>) ois.readObject();
                                     for (int i = 0; i < stores.size(); i++) {
-                                        storeArr[i] = stores.get(i).getStoreName();
+                                        storeArr[i] = allStoresFromServer.get(i).getStoreName();
                                         listStores.append(stores.get(i).getStoreName());
                                     }
-                                    String store =
-                                            (String) JOptionPane.showInputDialog(null, "Select store to message", title,
-                                                    JOptionPane.PLAIN_MESSAGE,null, storeArr, storeArr[0]);
-                                    // user enters the name of the store
-                                    boolean flag = false;                 // responsible for showing if store exists
-                                    for (User value : users) {
-                                        if (value instanceof Seller) {                  // goes through every User in users ArrayList, and chooses only Seller to parse through
-                                                                                        // their stores, and understand to which Seller is the store that user entered belongs to
-                                            for (int j = 0; j < ((Seller) value).getStores().size(); j++) {
-                                                if (((Seller) value).getStores().get(j).equals(store)) {          // if store belongs to the Seller, then Seller's object is saved as "value" variable
-                                                    flag = true;
-                                                    String msg = JOptionPane.showInputDialog(null, "Write your message: ",
-                                                            title, JOptionPane.PLAIN_MESSAGE);           // main user writes the message to the store
-                                                    ArrayList<Message> temp = currUser.getMessages();
-                                                    temp.add(new Message(currUser.getUsername(), value.getUsername(), msg));                  // writes new message
-                                                    currUser.setMessages(temp);               // update the messages field of the user
-                                                    // tells user who is owner of the store
-                                                    JOptionPane.showMessageDialog(null, "Store manager's username" +
-                                                            " is " + value.getUsername() + "Please wait for his " +
-                                                            "message", title, JOptionPane.INFORMATION_MESSAGE);
-                                                    for (Store s : ((Seller) value).getNewStores()) {
-                                                        if (s.getStoreName().equalsIgnoreCase(store)) {
-                                                            s.addMessagesReceived();
-                                                            if (!s.getUserMessaged().contains(currUser)) {
-                                                                s.addUserMessaged((Buyer) currUser);
-                                                            }
-                                                            for (Store st : stores) {
-                                                                if (s.getStoreName().equalsIgnoreCase(st.getStoreName())) {
-                                                                    st.addMessagesReceived();
-                                                                    if (!st.getUserMessaged().contains(currUser)) {
-                                                                        st.addUserMessaged((Buyer) currUser);
-                                                                    }
-                                                                }
-                                                            }
-                                                            writeStores("stores.csv", stores);
-                                                        }
-                                                    }
-                                                }
-                                            }
+                                    String store;
+                                    while (true) {
+                                        store =
+                                                (String) JOptionPane.showInputDialog(null, "Select store to message", title,
+                                                        JOptionPane.PLAIN_MESSAGE,null, storeArr, storeArr[0]);
+                                        System.out.println(store);
+                                        if (store == null) {
+                                            JOptionPane.showMessageDialog(null, "You should select one store!", title,
+                                                    JOptionPane.ERROR_MESSAGE);
+                                        }
+                                        else {
+                                            pwServer.write(store);
+                                            pwServer.println();
+                                            pwServer.flush();
+                                            break;
                                         }
                                     }
+
+
+                                    // user enters the name of the store
+                                    boolean flag = false;                 // responsible for showing if store exists
+                                    flag = true;
+                                    String msg;
+                                    while (true) {
+                                        msg = JOptionPane.showInputDialog(null, "Write your message: ",
+                                                title, JOptionPane.PLAIN_MESSAGE);           // main user writes the message to the store
+                                        if (msg == null) {
+                                            JOptionPane.showMessageDialog(null, "Enter the message!",
+                                                    title, JOptionPane.ERROR_MESSAGE);
+                                        }
+                                        else if (msg.equals("")) {
+                                            JOptionPane.showMessageDialog(null, "Your message should " +
+                                                            "contain at least one character",
+                                                    title, JOptionPane.ERROR_MESSAGE);
+                                        }
+                                        else {
+                                            pwServer.write(msg);
+                                            pwServer.println();
+                                            pwServer.flush();
+                                            break;
+                                        }
+                                    }
+
+                                    User sellerObject = (User) ois.readObject();
+
+                                    ArrayList<Message> temp = currUser.getMessages();
+                                    temp.add(new Message(currUser.getUsername(), sellerObject.getUsername(), msg));                  // writes
+                                    // new message
+                                    currUser.setMessages(temp);               // update the messages field of the user
+                                    // tells user who is owner of the store
+                                    JOptionPane.showMessageDialog(null, "Store manager's username" +
+                                            " is " + sellerObject + "Please wait for his " +
+                                            "message", title, JOptionPane.INFORMATION_MESSAGE);
+
                                     if (!flag) {              // flag is false when store doesn't exist
                                         JOptionPane.showMessageDialog(null, "That store doesn't exist!", title,
                                                 JOptionPane.ERROR_MESSAGE);
                                     }
-                                    saveMessages(currUser);                            // updates the messages.csv file with the changes that have been made to the messages field of the user
+                                                                // updates the messages.csv file with the changes that have been made to the messages field of the user
                                 } else if (makeChoice == 1) {                          // if user chooses to
                                     // write to the specific Seller directly
                                     while (true) {
                                         ArrayList<Message> messageHistory;
-                                        String[] listOfUsers = parseUsers(currUser);                        // List of users with whom he had conversations before
+                                        String[] listOfUsers = (String[]) ois.readObject();      // List of users
+                                        // with whom he had conversations before
                                         options = new String[listOfUsers.length + 2];
                                         options[0] = "Start new dialog";
                                         for (int i = 1; i < listOfUsers.length + 1; i++) {
                                             options[i] = listOfUsers[i - 1];
                                         }
                                         options[options.length - 1] = "Exit";
-                                        int receiveUser = JOptionPane.showOptionDialog(null,
-                                                "Select user to view messages or start a dialog with a new user",
-                                                title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-                                                options, options[options.length - 1]);
+                                        int receiveUser;
+                                        while (true) {
+                                            receiveUser = JOptionPane.showOptionDialog(null,
+                                                    "Select user to view messages or start a dialog with a new user",
+                                                    title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+                                                    options, options[options.length - 1]);
+                                            if (receiveUser == -1) {
+                                                JOptionPane.showMessageDialog(null, "You should write your choice!",
+                                                        title, JOptionPane.ERROR_MESSAGE);
+                                            }
+                                            else {
+                                                pwServer.write(receiveUser);
+                                                pwServer.println();
+                                                pwServer.flush();
+                                                break;
+                                            }
+                                        }
+
                                         if (receiveUser == 0) {                                          // dialog with new user
-                                            String newUser = (String) JOptionPane.showInputDialog(null, "Select buyer to message",
-                                                    title, JOptionPane.QUESTION_MESSAGE, null, sellers,
-                                                    sellers[0]);         // Enter name of the new user
+
+                                            String[] listOfSellers = (String[]) ois.readObject();
+
+                                            String newUser;
+                                            while (true) {
+                                                newUser = (String) JOptionPane.showInputDialog(null, "Select " +
+                                                                "seller to message",
+                                                        title, JOptionPane.QUESTION_MESSAGE, null, listOfSellers,
+                                                        listOfSellers[0]);         // Enter name of the new user
+                                                if (newUser == null) {
+                                                    JOptionPane.showMessageDialog(null, "You need to select one " +
+                                                            "seller to message", title, JOptionPane.ERROR_MESSAGE);
+                                                }
+                                                else {
+                                                    pwServer.write(newUser);
+                                                    pwServer.println();
+                                                    pwServer.flush();
+                                                    break;
+                                                }
+                                            }
+
                                             boolean alreadyMessaged = false;
                                             for (String u : listOfUsers) {
                                                 if (u.equals(newUser)) {
@@ -571,31 +623,39 @@ public class Menu {
                                             boolean flag = true;
                                             // same logic as it was in the line 123, read comments there
                                             boolean flag2 = true;
-                                            for (User value : users) {
-                                                if (value.getUsername().equals(newUser)) {
-                                                    if (value instanceof Buyer) {
-                                                        JOptionPane.showMessageDialog(null, "You can't write to " +
-                                                                "Seller, because you are Seller yourself", title, JOptionPane.ERROR_MESSAGE, null);
-                                                        flag = false;
-                                                    } else if (currUser.getBlockedUsers().contains(value) || value.getBlockedUsers().contains(currUser)) {
-                                                        JOptionPane.showMessageDialog(null, "You can't write to this " +
-                                                                "user because they are blocked", title, JOptionPane.ERROR_MESSAGE, null);
-                                                        flag2 = false;
+
+                                            User value = (User) ois.readObject();
+
+                                            if (value instanceof Buyer) {
+                                                JOptionPane.showMessageDialog(null, "You can't write to " +
+                                                        "Seller, because you are Seller yourself", title, JOptionPane.ERROR_MESSAGE, null);
+                                                flag = false;
+                                            } else if (currUser.getBlockedUsers().contains(value) || value.getBlockedUsers().contains(currUser)) {
+                                                JOptionPane.showMessageDialog(null, "You can't write to this " +
+                                                        "user because they are blocked", title, JOptionPane.ERROR_MESSAGE, null);
+                                                flag2 = false;
+                                            }
+
+                                            if (flag && flag2 && !alreadyMessaged) {
+                                                while (true) {
+                                                    String mes = JOptionPane.showInputDialog(null, "Write your hello message first!",
+                                                            title, JOptionPane.PLAIN_MESSAGE);               // user enters the message he would want to send to new user
+                                                    if (mes == null) {
+                                                        JOptionPane.showMessageDialog(null, "You should enter your " +
+                                                                "message", title, JOptionPane.ERROR_MESSAGE);
+                                                    }
+                                                    else {
+                                                        pwServer.write(mes);
+                                                        pwServer.println();
+                                                        pwServer.flush();
                                                     }
                                                 }
-                                            }
-                                            if (flag && flag2 && !alreadyMessaged) {
-                                                String mes = JOptionPane.showInputDialog(null, "Write your hello message first!",
-                                                        title, JOptionPane.PLAIN_MESSAGE);               // user enters the message he would want to send to new user
-                                                ArrayList<Message> temp = currUser.getMessages();
-                                                temp.add(new Message(currUser.getUsername(), newUser, mes));
-                                                currUser.setMessages(temp);
-                                                parseMessageHistory(currUser, newUser);
                                             }
                                         } else if (receiveUser >= 1 && receiveUser != options.length - 1) {
                                             // if user chooses to continue conversation with the user he had conversation before
                                             while (true) {
-                                                messageHistory = parseMessageHistory(currUser, listOfUsers[receiveUser - 1]);
+                                                messageHistory = (ArrayList<Message>) ois.readObject();
+
                                                 messageHist = new StringBuilder(String.format("Message " +
                                                                 "History: %s - " +
                                                                 "%s%n----------------------------------------%n",
@@ -613,42 +673,85 @@ public class Menu {
                                                 */
                                                 options = new String[]{"Write Message", "Edit Message", "Delete " +
                                                         "Message", "Export History to CSV", "Exit"};
-                                                int optionChoice = JOptionPane.showOptionDialog(null,
-                                                        messageHist.toString() + "\nSelect an option to proceed",
-                                                        title, JOptionPane.YES_NO_OPTION,
-                                                        JOptionPane.QUESTION_MESSAGE, null, options, options[4]);
+
+                                                int optionChoice;
+                                                while (true) {
+                                                    optionChoice = JOptionPane.showOptionDialog(null,
+                                                            messageHist.toString() + "\nSelect an option to proceed",
+                                                            title, JOptionPane.YES_NO_OPTION,
+                                                            JOptionPane.QUESTION_MESSAGE, null, options, options[4]);
+
+                                                    if (optionChoice == -1) {
+                                                        JOptionPane.showMessageDialog(null, "Please select the " +
+                                                                "correct choice", title, JOptionPane.ERROR_MESSAGE);
+                                                    }
+                                                    else {
+                                                        pwServer.write(optionChoice);
+                                                        pwServer.println();
+                                                        pwServer.flush();
+                                                        break;
+                                                    }
+                                                }
+
+
+
                                                 if (optionChoice == 0) {                 //if user chooses to write a new message
                                                     options = new String[]{"Send Message", "Upload File"};
                                                     int fileOrText = JOptionPane.showOptionDialog(null, "Do you want " +
                                                                     "to send a message or upload a text file?", title,
                                                             JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
                                                             null, options, options[0]);
-                                                    if (fileOrText == 1) {              // if user sends regular message
-                                                        String mes = JOptionPane.showInputDialog(null, "Write your message: ",
-                                                                title, JOptionPane.PLAIN_MESSAGE);
-                                                        ArrayList<Message> temp = currUser.getMessages();
-                                                        temp.add(new Message(currUser.getUsername(), listOfUsers[receiveUser - 1], mes));
-                                                        currUser.setMessages(temp);
-                                                    }
-                                                    else if (fileOrText == 2) {            // if user sends txt file as a message
-                                                        String fileName = JOptionPane.showInputDialog(null, "Enter " +
-                                                                "name of txt file: ", title, JOptionPane.PLAIN_MESSAGE);    // enters name of the file
-                                                        String mes;
-                                                        ArrayList<String> tempArr = new ArrayList<>();
-                                                        try {
-                                                            BufferedReader bfr = new BufferedReader(new FileReader(fileName));
-                                                            String st;
-                                                            while ((st = bfr.readLine()) != null) {
-                                                                tempArr.add(st);
+                                                    if (fileOrText == 0) {              // if user sends regular message
+                                                        while (true) {
+                                                            String mes = JOptionPane.showInputDialog(null, "Write your message: ",
+                                                                    title, JOptionPane.PLAIN_MESSAGE);
+                                                            if (mes == null) {
+                                                                JOptionPane.showMessageDialog(null, "Please write a " +
+                                                                                "message", title, JOptionPane.ERROR_MESSAGE);
                                                             }
-                                                            mes = String.join("\\n",tempArr);
-                                                            ArrayList<Message> temp = currUser.getMessages();
-                                                            temp.add(new Message(currUser.getUsername(), listOfUsers[receiveUser - 1], mes));
-                                                            currUser.setMessages(temp);
+                                                            else if (mes.equals("")) {
+                                                                JOptionPane.showMessageDialog(null, "Message cannot " +
+                                                                                "be an emply string", title, JOptionPane.ERROR_MESSAGE);
+                                                            }
+                                                            else {
+                                                                pwServer.write(mes);
+                                                                pwServer.println();
+                                                                pwServer.flush();
+                                                                break;
+                                                            }
                                                         }
-                                                        catch (FileNotFoundException e) {
-                                                            JOptionPane.showMessageDialog(null, "That file could not " +
-                                                                    "be found", "Error", JOptionPane.ERROR_MESSAGE);
+                                                    }
+                                                    else if (fileOrText == 1) {            // if user sends txt file
+                                                        // as a message
+                                                        String fileName;
+                                                        while (true) {
+                                                            fileName = JOptionPane.showInputDialog(null, "Enter " +
+                                                                    "name of txt file: ", title, JOptionPane.PLAIN_MESSAGE);    // enters name of the file
+                                                            if (fileName == null) {
+                                                                JOptionPane.showMessageDialog(null, "Please write a " +
+                                                                        "filename", title, JOptionPane.ERROR_MESSAGE);
+                                                            }
+                                                            else if (fileName.equals("")) {
+                                                                JOptionPane.showMessageDialog(null, "Message cannot " +
+                                                                        "be an emply string", title, JOptionPane.ERROR_MESSAGE);
+                                                            }
+                                                            else {
+                                                                pwServer.write(fileName);
+                                                                pwServer.println();
+                                                                pwServer.flush();
+                                                                break;
+                                                            }
+                                                            String reportFromServer = bfrServer.readLine();
+                                                            if (reportFromServer.equals("Success")) {
+                                                                JOptionPane.showMessageDialog(null, "Your message was" +
+                                                                        " successfully writen from the given file",
+                                                                        title, JOptionPane.INFORMATION_MESSAGE);
+                                                            }
+                                                            else {
+                                                                JOptionPane.showMessageDialog(null, "File provided " +
+                                                                                "from you does not EXIST",
+                                                                        title, JOptionPane.ERROR_MESSAGE);
+                                                            }
                                                         }
                                                     }
                                                 } else if (optionChoice == 1) {              //
