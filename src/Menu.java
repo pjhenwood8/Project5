@@ -3,9 +3,6 @@ import java.io.*;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Project 4 - Menu
@@ -22,12 +19,13 @@ import java.util.Map;
 public class Menu {
     public static void main(String[] args) throws IOException {
         boolean online = true;
-        ArrayList<User> users = readUsers("login.csv");                 // Each line in the "login.csv" file is a User object, using special method we read whole file into an ArrayList of Users
+        ArrayList<User> users = readUsers("login.csv");                 // Each line in the "login.csv" file is a
+        // User object, using special method we read whole file into an ArrayList of Users
         ArrayList<Store> stores = readStores("stores.csv", users);      // We do the same thing with the stores objects
         boolean serverConnection = false;
         Socket socket = null;
         while (!serverConnection) {
-            int port = 0;
+            int port;
             do {
                 try {
                     port = Integer.parseInt(JOptionPane.showInputDialog(null,
@@ -52,7 +50,7 @@ public class Menu {
             String title = "Welcome to the Marketplace Messaging System!";
             String[] options;
             boolean loggingIn = true;
-            boolean loggedIn = false;
+            boolean loggedIn;
             User currUser = null;
             while (loggingIn) {                                                  // An infinite loop that breaks when
                 // user is able to log in
@@ -62,9 +60,9 @@ public class Menu {
                         JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[2]);
                 pwServer.write(choice);
                 pwServer.flush();
-                String email = "";
-                String pass = "";
-                String userName = "";
+                String email;
+                String pass;
+                String userName;
                 boolean invBuyer = true;
                 switch (choice) {
                     case 0:
@@ -886,7 +884,7 @@ public class Menu {
                                                 JOptionPane.INFORMATION_MESSAGE);
                                     } else if (alphabetical == 1) {
                                         String sortMessages = bfrServer.readLine().replaceAll("\\\\n", "\n");
-                                        JOptionPane.showMessageDialog(null, sortMessages.toString(), title,
+                                        JOptionPane.showMessageDialog(null, sortMessages, title,
                                                 JOptionPane.INFORMATION_MESSAGE);
                                     } else if (alphabetical == 2) {
                                         String commonWords = bfrServer.readLine().replaceAll("\\\\n", "\n");
@@ -899,7 +897,6 @@ public class Menu {
                             break;
                         case 2:
                             // options for the user's account
-                            boolean exit = false;
                             while (true) {
                                 assert currUser != null;
                                 title = String.format("%s - Account Details%n", currUser.getUsername());
@@ -926,6 +923,7 @@ public class Menu {
                                             null, options, options[2]);
                                     String newAccountInfo;
                                     pwServer.write(choice);
+                                    pwServer.flush();
                                     switch (choice) {
                                         case 0:
                                             // user selects change email
@@ -990,14 +988,13 @@ public class Menu {
                                     }
                                 } else if (choice == 2) {
                                     // user selects block/unblock users
-                                    String blockedUsers = bfrServer.readLine();
+                                    String blockedUsers = bfrServer.readLine().replaceAll("\\\\n","\n");
                                     // Asks if user wants to block or unblock a user
                                     options = new String[]{"Block New User", "Unblock User", "Exit"};
                                     choice = JOptionPane.showOptionDialog(null, blockedUsers, title,
                                             JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options,
                                             options[2]);
                                     pwServer.write(choice);
-                                    pwServer.println();
                                     pwServer.flush();
                                     switch (choice) {
                                         case 0:
@@ -1005,6 +1002,7 @@ public class Menu {
                                             String blockUsername = (String) JOptionPane.showInputDialog(null, "Enter name" +
                                                     " of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null,
                                                     userArr, userArr[0]);
+                                            System.out.println(blockUsername);
                                             pwServer.write(blockUsername);
                                             pwServer.println();
                                             pwServer.flush();
@@ -1012,8 +1010,8 @@ public class Menu {
                                             if (blockUsername == null) {
                                                 break;
                                             }
-                                            int action = bfrServer.read();
-                                            if (action == 0) {
+                                            String action = bfrServer.readLine();
+                                            if (action.equals("yes")) {
                                                 // if that user exist they are blocked
                                                 JOptionPane.showMessageDialog(null, blockUsername + " blocked",
                                                         title, JOptionPane.INFORMATION_MESSAGE);
@@ -1042,8 +1040,8 @@ public class Menu {
                                                 if (unblockUsername == null) {
                                                     break;
                                                 }
-                                                action = bfrServer.read();
-                                                if (action == 0) {
+                                                action = bfrServer.readLine();
+                                                if (action.equals("yes")) {
                                                     // if that user is currently blocked they are unblocked
                                                     JOptionPane.showMessageDialog(null, unblockUsername + " unblocked",
                                                             title, JOptionPane.INFORMATION_MESSAGE);
@@ -1058,7 +1056,6 @@ public class Menu {
                                             }
                                             break;
                                         default:
-                                            exit = true;
                                             break;
                                     }
                                 } else if (choice == 3 && currUser instanceof Seller) {
@@ -1130,61 +1127,6 @@ public class Menu {
     }
 
 
-    public static void writeUsers(String filename, ArrayList<User> users) {
-        File f = new File(filename);
-        try (PrintWriter pw = new PrintWriter(new FileOutputStream(f, false))) {
-            for (User u : users) {
-                pw.print("\"" + u.getUsername() + "\",\"" + u.getEmail() + "\",\"" + u.getPassword());
-                if (u instanceof Buyer) {
-                    pw.print("\",\"b\",\"");
-                } else {
-                    pw.print("\",\"s\",\"");
-                }
-                if (u.getBlockedUsers().size() > 0) {
-                    ArrayList<User> blockedUsers = u.getBlockedUsers();
-                    ArrayList<String> blockedUsernames = new ArrayList<>();
-                    for (User bUser : blockedUsers) {
-                        blockedUsernames.add(bUser.getUsername());
-                    }
-                    for (int i = 0; i < blockedUsernames.size(); i++) {
-                        if (i != blockedUsers.size() - 1) {
-                            pw.print(blockedUsernames.get(i) + ",");
-                        } else {
-                            pw.print(blockedUsernames.get(i) + "\"");
-                        }
-                    }
-                } else {
-                    if (u instanceof Seller) {
-                        if (((Seller) u).getStores().size() > 0) {
-                            pw.print("\"");
-                        } else {
-                            pw.print("\",");
-                        }
-                    } else {
-                        pw.print("\"");
-                    }
-                }
-                if (u instanceof Seller) {
-                    if (((Seller) u).getStores().size() > 1) {
-                        for (int i = 0; i < ((Seller) u).getStores().size(); i++) {
-                            if (i != ((Seller) u).getStores().size() - 1) {
-                                pw.print(",\"" + ((Seller) u).getStores().get(i) + ",");
-                            } else {
-                                pw.print(((Seller) u).getStores().get(i) + "\"");
-                            }
-                        }
-                    } else if (((Seller) u).getStores().size() == 1) {
-                        pw.print(",\"" + ((Seller) u).getStores().get(0) + "\"");
-                    } else {
-                        pw.print("\"\"");
-                    }
-                }
-                pw.println();
-            }
-        } catch (FileNotFoundException e) {
-            JOptionPane.showMessageDialog(null, "That file could not be found", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
 
     /* this is very useful method that is used to read singular lines in the files
     it's functionality is fairly basic:
@@ -1214,18 +1156,6 @@ public class Menu {
         return words;
     }
 
-    /*
-    This method is used to conveniently call blockUser method from the User.java
-    * */
-    public static void addBlockedUsers(ArrayList<User> users) {
-        for (User u : users) {
-            ArrayList<String> blockedUsernames = u.getBlockedUsernames();
-            for (String bUser : blockedUsernames) {
-                u.blockUser(bUser, users);
-            }
-        }
-    }
-
     // This method is used to save changed made to the user to the "messages.csv" file
     public static void saveMessages(User user) throws IOException {
         ArrayList<Message> allMessages = user.getMessages();
@@ -1251,197 +1181,6 @@ public class Menu {
             pw.println();
             pw.flush();
         }
-    }
-public static User login(BufferedReader bfr, PrintWriter pw) {
-    // Initialize variables
-        ArrayList<String[]> users = new ArrayList<>();
-        ArrayList<String> tempArrayList = new ArrayList<>();
-        String[] tempArray;
-        ArrayList<String> transferList;
-        boolean invEmail;
-        String email, pass;
-        String title = "Login";
-
-        //Add users from file to arraylist
-        /*try {
-            //BufferedReader bfr = new BufferedReader(new FileReader("login.csv"));
-            String line = bfr.readLine();
-            while (line != null) {
-                tempArrayList.add(line);
-                line = bfr.readLine();
-            }
-            for (String s : tempArrayList) {
-                transferList = customSplitSpecific(s);
-                tempArray = new String[transferList.size()];
-                for (int j = 0; j < tempArray.length; j++) {
-                    tempArray[j] = transferList.get(j);
-                }
-                users.add(tempArray);
-            }
-            bfr.close();
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);
-        } */
-    //Loops forever until a valid email and password are entered, or the escape sequence is ran
-        while (true) {
-            email = JOptionPane.showInputDialog(null, "Please enter your email:", title, JOptionPane.PLAIN_MESSAGE);
-            pw.write(email);
-            pw.println();
-            pw.flush();
-            pass = JOptionPane.showInputDialog(null, "Please enter your password:", title,
-                    JOptionPane.PLAIN_MESSAGE);
-            pw.write(pass);
-            pw.println();
-            pw.flush();
-
-            invEmail = true;
-            for (String[] user : users) {
-                if (email.equals(user[1])) {
-                    invEmail = false;
-                    if (pass.equals(user[2])) {
-                        if (user[3].equals("b"))
-                            return new Buyer(user[0], email, pass);
-                        if (user[3].equals("s"))
-                            return new Seller(user[0], email, pass);
-                    }
-                }
-            }
-
-            //if the email or password does not match an existing account it is printed
-            if (invEmail) {
-                JOptionPane.showMessageDialog(null, "Your email was incorrect", "Login", JOptionPane.WARNING_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(null, "Your password was incorrect", "Login",
-                        JOptionPane.WARNING_MESSAGE);
-            }
-            int option;
-            do {
-                String[] options = new String[]{"Yes", "No"};
-                option = JOptionPane.showOptionDialog(null, "Would you like to try again?", title,
-                        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-                if (option == 1) {
-                    return null;
-                }
-            } while (option != 0);
-        }
-    }
-
-    public static User createAccount(String file) {
-        //Variables are initialized
-        ArrayList<String[]> userFile = new ArrayList<>();
-        User user = null;
-        String email = "";
-        String pass = "";
-        String userType = "";
-        String userName = "";
-        ArrayList<String> tempArrayList = new ArrayList<>();
-        String[] tempArray;
-        ArrayList<String> transferList;
-        boolean repeatUser = false;
-        boolean repeatEmail = false;
-        boolean invUsername = true;
-        boolean invEmail = true;
-        boolean invPass = true;
-        boolean invBuyer = true;
-        String title = "Create new Account";
-        //The array userFile is filled with all the information of users from login.csv
-        try {
-            BufferedReader bfr = new BufferedReader(new FileReader(file));
-            String line = bfr.readLine();
-            while (line != null) {
-                tempArrayList.add(line);
-                line = bfr.readLine();
-            }
-            for (String s : tempArrayList) {
-                transferList = customSplitSpecific(s);
-                tempArray = new String[transferList.size()];
-                for (int j = 0; j < tempArray.length; j++) {
-                    tempArray[j] = transferList.get(j);
-                }
-                userFile.add(tempArray);
-            }
-            bfr.close();
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        //Loops until a valid email is inputted, a valid email being an email that is
-        //not previously used and does not have and @ sign or comma
-        while(invEmail){
-            email = JOptionPane.showInputDialog(null, "A valid email contains an @ sign and has no commas\n" +
-                            "Please enter a valid email:", title, JOptionPane.PLAIN_MESSAGE);
-            for (String[] strings : userFile) {
-                if (email.equals(strings[1])) {
-                    repeatEmail = true;
-                    break;
-                }
-            }
-            if (email.contains(",") || !email.contains("@")) {
-                JOptionPane.showMessageDialog(null, "That email was not valid", title, JOptionPane.WARNING_MESSAGE);
-            } else if (repeatEmail) {
-                JOptionPane.showMessageDialog(null, "Someone else has that email please enter a different one", title,
-                        JOptionPane.WARNING_MESSAGE);
-                repeatEmail = false;
-            } else {
-                invEmail = false;
-            }
-        }
-        //Loops until a valid username is inputted, a valid username being a username that is
-        //not previously used and does not have a comma
-        while(invUsername){
-            userName = JOptionPane.showInputDialog(null, "A valid username contains no commas\nPlease enter a valid" +
-                    " username: ", title, JOptionPane.PLAIN_MESSAGE);
-            for (String[] strings : userFile) {
-                if (userName.equals(strings[0])) {
-                    repeatUser = true;
-                    break;
-                }
-            }
-            if (userName.contains(",") || userName.equals("")) {
-                JOptionPane.showMessageDialog(null, "That user name was not valid", title, JOptionPane.WARNING_MESSAGE);
-            } else if (repeatUser) {
-                JOptionPane.showMessageDialog(null, "Someone else has that user name please enter a different one.", title, JOptionPane.WARNING_MESSAGE);
-                repeatUser = false;
-            } else {
-                invUsername = false;
-            }
-        }
-        //Loops until a password is inputted
-        while(invPass){
-            pass = JOptionPane.showInputDialog(null, "Please enter a password: ", title, JOptionPane.PLAIN_MESSAGE);
-            if (pass == null || pass.equals("")) {
-                JOptionPane.showMessageDialog(null, "That password was not valid", title, JOptionPane.WARNING_MESSAGE);
-            } else {
-                invPass = false;
-            }
-        }
-        //Loops until buyer/seller is inputted
-        while(invBuyer){
-            String[] options = new String[]{"Buyer", "Seller"};
-            int choice = JOptionPane.showOptionDialog(null, "Are you a buyer or seller?", title,
-                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-            if (choice == 0) {
-                userType = "b";
-                user = new Buyer(userName, email, pass);
-                invBuyer = false;
-            }else if (choice == 1) {
-                userType = "s";
-                user = new Seller(userName, email, pass);
-                invBuyer = false;
-            }
-        }
-        //The new user is written into login.csv
-        try {
-            PrintWriter pw = new PrintWriter(new FileOutputStream(file, false));
-                for (String[] strings : userFile) {
-                    pw.println("\"" + strings[0] + "\"" + "," + "\"" + strings[1] + "\"" + "," + "\"" + strings[2] + "\"" + "," + "\"" + strings[3] + "\"" + "," + "\"" + strings[4] + "\"");
-            }
-            pw.println("\"" + userName + "\"" + "," + "\"" + email + "\"" + "," + "\"" + pass + "\"" + "," + "\"" + userType + "\"" + ",\"\"");
-            pw.close();
-        } catch (IOException e ) {
-            JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        //A new user is returned using the information inputted
-        return user;
     }
 
     /*
@@ -1608,18 +1347,6 @@ public static User login(BufferedReader bfr, PrintWriter pw) {
         } catch (FileNotFoundException e) {
             JOptionPane.showMessageDialog(null, "That file could not be found", "Error", JOptionPane.ERROR_MESSAGE);
         }
-    }
-
-    // returns an arraylist of messages that went to store or mainClient
-    public static ArrayList<Message> parseStoreMessages(User mainClient, String thirdParty) {
-        ArrayList<Message> messages = mainClient.getMessages();
-        ArrayList<Message> temp = new ArrayList<>();
-        for (Message message : messages) {
-            if (message.getSender().equals(thirdParty)) {
-                temp.add(message);
-            }
-        }
-        return temp;
     }
 }
 
