@@ -84,15 +84,15 @@ public class Buyer extends User {
         //sort alphabetically
         Collections.sort(stores);
         StringBuilder sortMessages = new StringBuilder();
-        if (alphabetical == true) {
+        if (alphabetical) {
             //alphabetical
             for (int i = 0; i < stores.size(); i++) {
-                sortMessages.append("Store: " + stores.get(i) + " - Number of messages received: " + listOne.get(stores.get(i)) + "\n");
+                sortMessages.append("Store: " + stores.get(i) + " - Number of messages received: " + listOne.get(stores.get(i)) + "\\n");
             }
-        } else if (alphabetical == false) {
+        } else {
             //reverse alphabetical
             for (int i = stores.size() - 1; i >= 0; i--) {
-                sortMessages.append("Store: " + stores.get(i) + " - Number of messages received: " + listOne.get(stores.get(i)) + "\n");
+                sortMessages.append("Store: " + stores.get(i) + " - Number of messages received: " + listOne.get(stores.get(i)) + "\\n");
             }
         }
         return sortMessages.toString();

@@ -215,6 +215,8 @@ public class Menu {
                     options = new String[]{"Messages", "Statistics", "Account", "Exit"};
                     int choice = JOptionPane.showOptionDialog(null, "Select an option to proceed", "Main Menu",
                             JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[3]);
+                    pwServer.write(choice);
+                    pwServer.flush();
                     switch (choice) {
                         case 0:                     // If user chooses to Message another person
                             title = String.format("%s - Message Log%n", currUser.getUsername());
@@ -772,19 +774,21 @@ public class Menu {
                                 */
                                 options = new String[]{"Alphabetical", "Reverse Alphabetical", "Most Common " +
                                         "Words", "Exit"};
-                                int alphabetical =
-                                        JOptionPane.showOptionDialog(null, "Select option to show statistics",
-                                                title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
-                                                null, options, options[3]); //
                                 // Assigns alphabetical to user choice as an int.
+                                int alphabetical = JOptionPane.showOptionDialog(null, "Select option to show statistics",
+                                                title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+                                                null, options, options[3]);
+                                pwServer.write(alphabetical);
+                                pwServer.flush();
                                 if (currUser instanceof Buyer) {
                                     if (alphabetical == 0) {
-                                        String stats = ((Buyer) currUser).viewStatistics(true);
+                                        String stats = bfrServer.readLine().replaceAll("\\\\n","\n");
+                                        System.out.println(stats);
                                         // shows user statistics in alphabetical order
                                         JOptionPane.showMessageDialog(null, stats, title, JOptionPane.INFORMATION_MESSAGE);
                                     }
                                     else if (alphabetical == 1) {
-                                        String stats = ((Buyer) currUser).viewStatistics(false);
+                                        String stats = bfrServer.readLine().replaceAll("\\\\n","\n");
                                         // shows user statistics in reverse alphabetical order
                                         JOptionPane.showMessageDialog(null, stats, title, JOptionPane.INFORMATION_MESSAGE);
                                     }
@@ -876,124 +880,21 @@ public class Menu {
                                         break;
                                     }
                                 } else if (currUser instanceof Seller) {
-                                    Map<String, Integer> sentMessages = new HashMap<>();
-                                    for (User u : users) { // Iterates through every user
-                                        int count;
-                                        ArrayList<Message> messages;
-                                        if (!u.equals(currUser) && u instanceof Buyer) {
-                                             messages = parseStoreMessages(currUser, u.getUsername()); // gets all messages sent to the current user's store from a user
-                                            count = messages.size(); // gets number of messages from the sender
-                                            sentMessages.put(u.getUsername(), count); // assigns the users and number of messages they sent to a hashmap
-                                        }
-                                    }
-                                    ArrayList<String> sortedSentMessages = new ArrayList<>(sentMessages.keySet());
-                                    Collections.sort(sortedSentMessages); // sorts users
-                                    StringBuilder sortMessages = new StringBuilder();
                                     if (alphabetical == 0) {
-                                        for (String s : sortedSentMessages) {
-                                            // writes the user and number of messages they sent alphabetically
-                                            sortMessages.append(String.format("%s sent %d messages%n", s,
-                                                    sentMessages.get(s)));
-                                        }
-                                        JOptionPane.showMessageDialog(null, sortMessages.toString(), title,
+                                        String sortMessages = bfrServer.readLine().replaceAll("\\\\n", "\n");
+                                        JOptionPane.showMessageDialog(null, sortMessages, title,
                                                 JOptionPane.INFORMATION_MESSAGE);
                                     } else if (alphabetical == 1) {
-                                        for (int j = sortedSentMessages.size() - 1; j >= 0; j--) {
-                                            // writes the user and number of messages they sent reverse alphabetically
-                                            sortMessages.append(String.format("%s sent %d messages%n",
-                                                    sortedSentMessages.get(j), sentMessages.get(sortedSentMessages.get(j))));
-                                        }
+                                        String sortMessages = bfrServer.readLine().replaceAll("\\\\n", "\n");
                                         JOptionPane.showMessageDialog(null, sortMessages.toString(), title,
                                                 JOptionPane.INFORMATION_MESSAGE);
                                     } else if (alphabetical == 2) {
-                                        ArrayList<Message> allMessages = new ArrayList<>();
-                                        String word = "";
-                                        String secondWord = "";
-                                        String thirdWord = "";
-                                        int count;
-                                        int maxCount = 0;
-                                        int secondCount = 0;
-                                        int thirdCount = 0;
-                                        for (User u1 : users) {
-                                            if (u1 != currUser) {
-                                                allMessages.addAll(parseMessageHistory(currUser, u1.getUsername()));
-                                            }
-                                        }
-                                        String message = "";
-                                        for (Message m : allMessages) {
-                                            message += m.getMessage() + " ";
-                                        }
-                                        // Gets the most commonly used word and the number of times it is used
-                                        String[] wordArr = message.split(" ");
-                                        for (int k = 0; k < wordArr.length; k++) {
-                                            count = 1;
-                                            for (int l = k + 1; l < wordArr.length; l++) {
-                                                if (wordArr[k].equals(wordArr[l])) {
-                                                    count++;
-                                                }
-
-                                            }
-                                            if (count > maxCount) {
-                                                maxCount = count;
-                                                word = wordArr[k];
-                                            }
-                                        }
-                                        // Gets the second most commonly used word and the number of times it is used
-                                        String[] newWordArr = new String[wordArr.length - maxCount];
-                                        int i = 0;
-                                        for (String s : wordArr) {
-                                            if (!s.equals(word)) {
-                                                newWordArr[i] = s;
-                                                i++;
-                                            }
-                                        }
-                                        for (int k = 0; k < newWordArr.length; k++) {
-                                            count = 1;
-                                            for (int l = k + 1; l < newWordArr.length; l++) {
-                                                if (newWordArr[k].equals(newWordArr[l])) {
-                                                    count++;
-                                                }
-
-                                            }
-                                            if (count > secondCount) {
-                                                secondWord = newWordArr[k];
-                                                secondCount = count;
-                                            }
-                                        }
-                                        // Gets the third most commonly used word and the number of times it is used
-                                        String[] new2WordArr = new String[newWordArr.length - secondCount];
-                                        i = 0;
-                                        for (String s : newWordArr) {
-                                            if (!s.equals(secondWord)) {
-                                                new2WordArr[i] = s;
-                                                i++;
-                                            }
-                                        }
-                                        for (int k = 0; k < new2WordArr.length; k++) {
-                                            count = 1;
-                                            for (int l = k + 1; l < new2WordArr.length; l++) {
-                                                if (new2WordArr[k].equals(new2WordArr[l])) {
-                                                    count++;
-                                                }
-
-                                            }
-                                            if (count > thirdCount) {
-                                                thirdCount = count;
-                                                thirdWord = new2WordArr[k];
-                                            }
-                                        }
-                                        // Prints the first, second, and third most commonly used words
-                                        String commonWords = "The most common word in Messages is " + word + " " +
-                                                "said " + maxCount + " times\n" + "The second most common word in " +
-                                                "Messages is " + secondWord + " said " + secondCount + " times\n" +
-                                                "The third most common word in Messages is " + thirdWord + " said "
-                                                + thirdCount + " times";
+                                        String commonWords = bfrServer.readLine().replaceAll("\\\\n", "\n");
                                         JOptionPane.showMessageDialog(null, commonWords, title, JOptionPane.INFORMATION_MESSAGE);
                                     } else {
                                         break;
                                     }
                                 }
-
                             }
                             break;
                         case 2:
@@ -1015,6 +916,8 @@ public class Menu {
                                 choice = JOptionPane.showOptionDialog(null, userInfo + "Please choose an option " +
                                                 "to proceed", title, JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE,
                                         null, options, options[0]);
+                                pwServer.write(choice);
+                                pwServer.flush();
                                 if (choice == 0) {
                                     // user selects edit account
                                     options = new String[]{"Change Email", "Change Password", "Exit"};
@@ -1022,33 +925,38 @@ public class Menu {
                                             , title, JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE,
                                             null, options, options[2]);
                                     String newAccountInfo;
+                                    pwServer.write(choice);
                                     switch (choice) {
                                         case 0:
                                             // user selects change email
                                             do {
+                                                // user types new email
                                                 newAccountInfo = JOptionPane.showInputDialog(null,
                                                         "Enter new email: ", title, JOptionPane.PLAIN_MESSAGE);
-                                                // user types new email
-                                                if (newAccountInfo == null) {
-                                                    break;
-                                                } else if (newAccountInfo.contains("@") && newAccountInfo.contains(
-                                                        ".")) {
-                                                    currUser.setEmail(newAccountInfo); // if new email is valid changes current user's email to new email
-                                                    JOptionPane.showMessageDialog(null, String.format("Email changed " +
-                                                            "to: %s%n", newAccountInfo), title, JOptionPane.INFORMATION_MESSAGE);
-                                                } else {
-                                                    // user inputs an invalid email (does not contain @ and .)
-                                                    JOptionPane.showMessageDialog(null, "That email was not valid", title, JOptionPane.WARNING_MESSAGE);
-                                                    newAccountInfo = "";
+                                                pwServer.write(newAccountInfo);
+                                                pwServer.println();
+                                                pwServer.flush();
+
+                                                newAccountInfo = bfrServer.readLine();
+                                                System.out.println(newAccountInfo);
+                                                if (newAccountInfo.isEmpty()) {
+                                                    JOptionPane.showMessageDialog(null, "That email was not valid\n " +
+                                                                    "(Email didn't contain an @ and . or email was " +
+                                                                    "already in use", "title", JOptionPane.WARNING_MESSAGE);
                                                 }
                                             } while (newAccountInfo.isEmpty());
                                             // shows that the user's email was changed
+                                            JOptionPane.showMessageDialog(null, String.format("Email " +
+                                                    "changed to: %s%n", newAccountInfo), title, JOptionPane.INFORMATION_MESSAGE);
                                             break;
                                         case 1:
                                             // user selects change password
+                                            // user types new password
                                             newAccountInfo = JOptionPane.showInputDialog(null,
                                                     "Enter new password: ", title, JOptionPane.PLAIN_MESSAGE);
-                                            // user types new password
+                                            pwServer.write(newAccountInfo);
+                                            pwServer.println();
+                                            pwServer.flush();
                                             if (newAccountInfo != null) {
                                                 // changes user's password to new password
                                                 currUser.setPassword(newAccountInfo);
@@ -1069,13 +977,14 @@ public class Menu {
                                     choice = JOptionPane.showOptionDialog(null, "Are you sure you want to " +
                                                     "delete this user?", title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
                                             null, options, options[0]);
+                                    pwServer.write(choice);
+                                    pwServer.flush();
                                     if (choice == 0) {
                                         // user selects Y, their account is deleted (Their messages to other users will remain)
                                         JOptionPane.showMessageDialog(null, String.format("User [%s] " +
                                                         "successfully deleted%n", currUser.getUsername()), title,
                                                 JOptionPane.INFORMATION_MESSAGE);
                                         currUser.removeUser();
-                                        users.remove(currUser);
                                         choice = 3;
                                         currUser = null;
                                     }

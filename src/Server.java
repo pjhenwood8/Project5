@@ -2,8 +2,7 @@ import javax.swing.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.*;
 
 public class Server {
     public static void main(String[] args) throws IOException {
@@ -80,7 +79,7 @@ public class Server {
                     }
                     oos.writeObject(user);
                     if (user != null) {
-                        choice = Integer.parseInt(reader.readLine());
+                        choice = reader.read();
                         if (choice == 0) {       // MESSAGES / STATISTICS / ACCOUNT / EXIT
                             if (user instanceof Buyer) {
                                 ArrayList<Message> messageHistory = null;
@@ -635,16 +634,314 @@ public class Server {
                                 }
                                 saveMessages(user);
                             }
-                        }
-                        else if (choice == 1) {        // MESSAGES / STATISTICS / ACCOUNT / EXIT
+                        } else if (choice == 1) {        // MESSAGES / STATISTICS / ACCOUNT / EXIT
+                            while (true) {
+                                int alphabetical = reader.read();
+                                if (alphabetical == 0) {
+                                    if (user instanceof Buyer) {
+                                        String stats = ((Buyer) user).viewStatistics(true);
+                                        System.out.println(stats);
+                                        writer.write(stats);
+                                        writer.println();
+                                        writer.flush();
+                                    } else {
+                                        Map<String, Integer> sentMessages = new HashMap<>();
+                                        for (User u : allUsers) { // Iterates through every user
+                                            int count;
+                                            ArrayList<Message> messages;
+                                            if (!u.equals(user) && u instanceof Buyer) {
+                                                messages = parseStoreMessages(user, u.getUsername()); // gets all
+                                                // messages sent to the current user's store from a user
+                                                count = messages.size(); // gets number of messages from the sender
+                                                sentMessages.put(u.getUsername(), count); // assigns the users and number of messages they sent to a hashmap
+                                            }
+                                        }
+                                        ArrayList<String> sortedSentMessages = new ArrayList<>(sentMessages.keySet());
+                                        Collections.sort(sortedSentMessages); // sorts users
+                                        StringBuilder sortMessages = new StringBuilder();
+                                        for (String s : sortedSentMessages) {
+                                            // writes the user and number of messages they sent alphabetically
+                                            sortMessages.append(String.format("%s sent %d messages\\n", s,
+                                                    sentMessages.get(s)));
+                                        }
+                                        writer.write(sortMessages.toString());
+                                        writer.println();
+                                        writer.flush();
+                                    }
+                                } else if (alphabetical == 1) {
+                                    if (user instanceof Buyer) {
+                                        String stats = ((Buyer) user).viewStatistics(false);
+                                        System.out.println(stats);
+                                        writer.write(stats);
+                                        writer.println();
+                                        writer.flush();
+                                    } else {
+                                        Map<String, Integer> sentMessages = new HashMap<>();
+                                        for (User u : allUsers) { // Iterates through every user
+                                            int count;
+                                            ArrayList<Message> messages;
+                                            if (!u.equals(user) && u instanceof Buyer) {
+                                                messages = parseStoreMessages(user, u.getUsername()); // gets all
+                                                // messages sent to the current user's store from a user
+                                                count = messages.size(); // gets number of messages from the sender
+                                                sentMessages.put(u.getUsername(), count); // assigns the users and number of messages they sent to a hashmap
+                                            }
+                                        }
+                                        ArrayList<String> sortedSentMessages = new ArrayList<>(sentMessages.keySet());
+                                        Collections.sort(sortedSentMessages); // sorts users
+                                        StringBuilder sortMessages = new StringBuilder();
+                                        for (int j = sortedSentMessages.size() - 1; j >= 0; j--) {
+                                            // writes the user and number of messages they sent reverse alphabetically
+                                            sortMessages.append(String.format("%s sent %d messages\\n",
+                                                    sortedSentMessages.get(j), sentMessages.get(sortedSentMessages.get(j))));
+                                        }
+                                        writer.write(sortMessages.toString());
+                                        writer.println();
+                                        writer.flush();
+                                    }
+                                } else if (alphabetical == 2) {
+                                    ArrayList<Message> allMessages = new ArrayList<>();
+                                    String word = "";
+                                    String secondWord = "";
+                                    String thirdWord = "";
+                                    int count;
+                                    int maxCount = 0;
+                                    int secondCount = 0;
+                                    int thirdCount = 0;
+                                    for (User u1 : allUsers) {
+                                        if (u1 != user) {
+                                            allMessages.addAll(parseMessageHistory(user, u1.getUsername()));
+                                        }
+                                    }
+                                    String message = "";
+                                    for (Message m : allMessages) {
+                                        message += m.getMessage() + " ";
+                                    }
+                                    // Gets the most commonly used word and the number of times it is used
+                                    String[] wordArr = message.split(" ");
+                                    for (int k = 0; k < wordArr.length; k++) {
+                                        count = 1;
+                                        for (int l = k + 1; l < wordArr.length; l++) {
+                                            if (wordArr[k].equals(wordArr[l])) {
+                                                count++;
+                                            }
 
-                        }
-                        else if (choice == 2) {        // MESSAGES / STATISTICS / ACCOUNT / EXIT
+                                        }
+                                        if (count > maxCount) {
+                                            maxCount = count;
+                                            word = wordArr[k];
+                                        }
+                                    }
+                                    // Gets the second most commonly used word and the number of times it is used
+                                    String[] newWordArr = new String[wordArr.length - maxCount];
+                                    int i = 0;
+                                    for (String s : wordArr) {
+                                        if (!s.equals(word)) {
+                                            newWordArr[i] = s;
+                                            i++;
+                                        }
+                                    }
+                                    for (int k = 0; k < newWordArr.length; k++) {
+                                        count = 1;
+                                        for (int l = k + 1; l < newWordArr.length; l++) {
+                                            if (newWordArr[k].equals(newWordArr[l])) {
+                                                count++;
+                                            }
 
-                        }
-                        else {        // MESSAGES / STATISTICS / ACCOUNT / EXIT
+                                        }
+                                        if (count > secondCount) {
+                                            secondWord = newWordArr[k];
+                                            secondCount = count;
+                                        }
+                                    }
+                                    // Gets the third most commonly used word and the number of times it is used
+                                    String[] new2WordArr = new String[newWordArr.length - secondCount];
+                                    i = 0;
+                                    for (String s : newWordArr) {
+                                        if (!s.equals(secondWord)) {
+                                            new2WordArr[i] = s;
+                                            i++;
+                                        }
+                                    }
+                                    for (int k = 0; k < new2WordArr.length; k++) {
+                                        count = 1;
+                                        for (int l = k + 1; l < new2WordArr.length; l++) {
+                                            if (new2WordArr[k].equals(new2WordArr[l])) {
+                                                count++;
+                                            }
 
+                                        }
+                                        if (count > thirdCount) {
+                                            thirdCount = count;
+                                            thirdWord = new2WordArr[k];
+                                        }
+                                    }
+                                    // Prints the first, second, and third most commonly used words
+                                    String commonWords = "The most common word in Messages is " + word + " " +
+                                            "said " + maxCount + " times\\n" + "The second most common word in " +
+                                            "Messages is " + secondWord + " said " + secondCount + " times\\n" +
+                                            "The third most common word in Messages is " + thirdWord + " said "
+                                            + thirdCount + " times";
+                                    writer.write(commonWords);
+                                    writer.println();
+                                    writer.flush();
+                                } else {
+                                    break;
+                                }
+                            }
+                        } else if (choice == 2) {        // MESSAGES / STATISTICS / ACCOUNT / EXIT
+                            boolean exit = false;
+                            while (true) {
+                                assert user != null;
+                                choice = reader.read();
+                                if (choice == 0) {
+                                    // user selects edit account
+                                    choice = reader.read();
+                                    String newAccountInfo;
+                                    switch (choice) {
+                                        case 0:
+                                            // user selects change email
+                                            boolean repeat = false;
+                                            do {
+                                                newAccountInfo = reader.readLine();
+                                                // user types new email
+                                                for (User u : allUsers) {
+                                                    if (u.getEmail().equals(newAccountInfo)) {
+                                                        repeat = true;
+                                                    }
+                                                }
+                                                if (newAccountInfo == null) {
+                                                    break;
+                                                } else if (newAccountInfo.contains("@") && newAccountInfo.contains(".") && !repeat) {
+                                                    user.setEmail(newAccountInfo); // if new email is valid changes
+                                                    // current user's email to new email
+                                                } else if (repeat) {
+                                                    newAccountInfo = "";
+                                                } else {
+                                                    // user inputs an invalid email (does not contain @ and .)
+                                                    newAccountInfo = "";
+                                                }
+                                                writer.write(newAccountInfo);
+                                                writer.println();
+                                                writer.flush();
+                                            } while (newAccountInfo.isEmpty());
+                                            // shows that the user's email was changed
+                                            break;
+                                        case 1:
+                                            // user selects change password
+                                            newAccountInfo = reader.readLine();
+                                            // user types new password
+                                            if (newAccountInfo != null) {
+                                                // changes user's password to new password
+                                                user.setPassword(newAccountInfo);
+                                            } else {
+                                                break;
+                                            }
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                } else if (choice == 1) {
+                                    // user selects delete account
+                                    // makes sure user wants to delete their account
+                                    choice = reader.read();
+                                    if (choice == 0) {
+                                        // user selects Y, their account is deleted (Their messages to other users will remain)
+                                        user.removeUser();
+                                        allUsers.remove(user);
+                                        choice = 3;
+                                        user = null;
+                                    }
+                                } else if (choice == 2) {
+                                    // user selects block/unblock users
+                                    StringBuilder blockedUsers = new StringBuilder("Blocked Users: \n");
+                                    for (User b : user.getBlockedUsers()) { // shows list of currently blocked users
+                                        blockedUsers.append(b.getUsername()).append("\n");
+                                    }
+                                    // Asks if user wants to block or unblock a user
+                                    options = new String[]{"Block New User", "Unblock User", "Exit"};
+                                    choice = JOptionPane.showOptionDialog(null, blockedUsers.toString(), title,
+                                            JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options,
+                                            options[2]);
+                                    String[] blockedUsersArr = new String[currUser.getBlockedUsers().size()];
+                                    for (int i = 0; i < currUser.getBlockedUsers().size(); i++) {
+                                        blockedUsersArr[i] = currUser.getBlockedUsers().get(i).getUsername();
+                                    }
+                                    switch (choice) {
+                                        case 0:
+                                            // user selects block user
+                                            String blockUsername = (String) JOptionPane.showInputDialog(null, "Enter name" +
+                                                            " of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null,
+                                                    userArr, userArr[0]);
+                                            // user enters username of user to block
+                                            if (blockUsername == null) {
+                                                break;
+                                            } else if (currUser.blockUser(blockUsername, users)) {
+                                                // if that user exist they are blocked
+                                                JOptionPane.showMessageDialog(null, blockUsername + " blocked",
+                                                        title, JOptionPane.INFORMATION_MESSAGE);
+                                            } else {
+                                                // if they don't exist tell user
+                                                JOptionPane.showMessageDialog(null, "That user is already blocked",
+                                                        title, JOptionPane.WARNING_MESSAGE);
+                                            }
+                                            break;
+                                        case 1:
+                                            // user select unblock user
+                                            if (blockedUsersArr.length > 0) {
+                                                for (int i = 0; i < currUser.getBlockedUsers().size(); i++) {
+                                                    blockedUsersArr[i] = currUser.getBlockedUsers().get(i).getUsername();
+                                                }
+                                                String unblockUsername = (String) JOptionPane.showInputDialog(null, "Enter " +
+                                                                "name of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null
+                                                        , blockedUsersArr, blockedUsersArr[0]);
+                                                System.out.println(unblockUsername);
+                                                // user enters username of user to unblock
+                                                if (unblockUsername == null) {
+                                                    break;
+                                                } else if (currUser.unblockUser(unblockUsername, users)) {
+                                                    // if that user is currently blocked they are unblocked
+                                                    JOptionPane.showMessageDialog(null, unblockUsername + " unblocked",
+                                                            title, JOptionPane.INFORMATION_MESSAGE);
+                                                } else {
+                                                    // if they aren't blocked tell user
+                                                    JOptionPane.showMessageDialog(null, "That user is not blocked",
+                                                            title, JOptionPane.INFORMATION_MESSAGE);
+                                                }
+                                            } else {
+                                                JOptionPane.showMessageDialog(null, "This user has no other users " +
+                                                        "blocked", title, JOptionPane.WARNING_MESSAGE);
+                                            }
+                                            break;
+                                        default:
+                                            exit = true;
+                                            break;
+                                    }
+                                    writeUsers("login.csv", users); // writes changes to login.csv file
+                                } else if (choice == 3 && currUser instanceof Seller) {
+                                    // if user is seller allow user to create store
+                                    StringBuilder userStores = new StringBuilder("Your Stores: \n");
+                                    for (String storeName : ((Seller) currUser).getStores()) {
+                                        // shows list of current stores by current user
+                                        userStores.append(storeName).append("\n");
+                                    }
+                                    String storeName = JOptionPane.showInputDialog(null,
+                                            userStores.toString(), title, JOptionPane.QUESTION_MESSAGE);
+                                    ((Seller) currUser).createStore(storeName); // adds new store
+                                    stores.add(new Store(storeName, 0));
+                                    writeStores("stores.csv", stores); // updates stores.csv
+                                    writeUsers("login.csv", users); // updates login.csv
+                                    break;
+                                } else {
+                                    break;
+                                }
+                            }
+                        } else {        // MESSAGES / STATISTICS / ACCOUNT / EXIT
+                            user = null;
+                            break;
                         }
+                    } else {
+                        break;
                     }
                 }
             }
@@ -1045,5 +1342,16 @@ public class Server {
         } catch (FileNotFoundException e) {
             JOptionPane.showMessageDialog(null, "That file could not be found", "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    public static ArrayList<Message> parseStoreMessages(User mainClient, String thirdParty) {
+        ArrayList<Message> messages = mainClient.getMessages();
+        ArrayList<Message> temp = new ArrayList<>();
+        for (Message message : messages) {
+            if (message.getSender().equals(thirdParty)) {
+                temp.add(message);
+            }
+        }
+        return temp;
     }
 }
