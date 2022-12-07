@@ -202,7 +202,7 @@ public class Server {
                                                     // chooses to write a new message
                                                     //System.out.println("You want to send a message or upload a txt
                                                     // file?\n[1] Send message\n[2] Upload file");
-                                                    choice = Integer.parseInt(reader.readLine());
+                                                    choice = reader.read();
                                                     int fileOrText = choice;
                                                     // 1-SEND MESSAGE   /   2-UPLOAD FILE
                                                     if (fileOrText == 0) {              // if user sends regular message
@@ -362,7 +362,7 @@ public class Server {
 //                                    System.out.printf("[%d] %s%n", 0, "Start new dialog");           // We provide an option to start new dialog
 //                                    System.out.printf("[%d] %s%n", -1, "Exit");                      // We provide an option to exit the messages part of the program, to view statistics or change account settings
 
-                                    choice = Integer.parseInt(reader.readLine());
+                                    choice = reader.read();
 
                                     int receiveUser = choice;          // He makes the choice
                                     if (receiveUser == -1) {
@@ -469,7 +469,7 @@ public class Server {
 //                                            System.out.println("[3] Delete message                        [0] Exit");
 //                                            System.out.println("[-1] Export this message history to csv file");
 
-                                            int optionChoice = Integer.parseInt(reader.readLine());            // enters which
+                                            int optionChoice = reader.read();            // enters which
                                             // option you want to do
                                             if (optionChoice == -1) {            // exporting messages
 //                                                System.out.println("Enter name of the file to which you want to export your message history");
@@ -490,7 +490,7 @@ public class Server {
                                                 //      "file?\n[1] Send message\n[2] Upload file");    // you are
                                                 // presented with two options as described before
                                                 // 1 - regular message          2 - upload a txt file
-                                                int fileOrText = Integer.parseInt(scanner.nextLine());
+                                                int fileOrText = reader.read();
                                                 if (fileOrText == 1) {       // regular message
                                                     //System.out.println("Enter message: ");
                                                     String mes = reader.readLine();
@@ -537,7 +537,7 @@ public class Server {
                                                     z++;
                                                 }
                                                 //System.out.println("Choose message to edit");
-                                                choice = Integer.parseInt(reader.readLine());           // user chooses which
+                                                choice = reader.read();           // user chooses which
                                                 // message
                                                 // available for him to edit he wants to edit
                                                 //System.out.println("To which message you want to change it?");
@@ -563,7 +563,7 @@ public class Server {
                                                     i++;
                                                 }
                                                 //System.out.println("Choose message to delete");
-                                                choice = Integer.parseInt(reader.readLine());      // user chooses which
+                                                choice = reader.read();      // user chooses which
                                                 // message to delete
                                                 Message temp = userIsSender.get(choice - 1);        // we assign the message user chose to Message temp variable
                                                 ArrayList<Message> allUserMessages = user.getMessages();
