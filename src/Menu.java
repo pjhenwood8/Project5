@@ -1153,7 +1153,6 @@ public class Menu {
                             break;
                         default:
                             loggedIn = false;
-                            currUser = null;
                             break;
                     }
                 }
@@ -1161,11 +1160,16 @@ public class Menu {
             if (currUser != null) {
                 // user logs out
                 JOptionPane.showMessageDialog(null, "Successfully Logged out", "Marketplace Messaging", JOptionPane.INFORMATION_MESSAGE);
+                currUser = null;
             } else {
                 // user leaves program
                 JOptionPane.showMessageDialog(null, "Thank you for using the messaging service", "Marketplace Messaging", JOptionPane.INFORMATION_MESSAGE);
             }
         }
+        bfrServer.close();
+        pwServer.close();
+        oos.close();
+        ois.close();
     }
 
 

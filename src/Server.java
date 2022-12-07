@@ -52,8 +52,8 @@ public class Server {
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
                 User user = null;
+                boolean loggingIn = true;
                 while (true) {
-                    boolean loggingIn = true;
                     while (loggingIn) {
                         int choice = reader.read();
                         if (choice == 0) {                 // LOGIN / CREATE ACCOUNT / EXIT
