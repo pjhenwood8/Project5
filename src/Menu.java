@@ -327,7 +327,6 @@ public class Menu {
                                                                 , title, JOptionPane.ERROR_MESSAGE);
                                                     }
                                                 }
-                                                saveMessages(currUser);
                                             } else if (optionChoice == 1) {          // editing messages
                                                 messageHistory = parseMessageHistory(currUser,
                                                         listOfUsers[receiveUser - 1]);
@@ -352,10 +351,18 @@ public class Menu {
                                                     for (int j = 0; j < i; j++) {
                                                         messageNums[j] = j + 1;
                                                     }
-                                                    choice = (int) JOptionPane.showInputDialog(null,
-                                                            messageHist + "\nSelect message to edit",
-                                                            title, JOptionPane.QUESTION_MESSAGE, null, messageNums,
-                                                            messageNums[0]); //user chooses which message available for him to edit he wants to edit
+                                                    while (true) {
+                                                        try {
+                                                            choice = (int) JOptionPane.showInputDialog(null,
+                                                                    messageHist + "\nSelect message to edit",
+                                                                    title, JOptionPane.QUESTION_MESSAGE, null, messageNums,
+                                                                    messageNums[0]); //user chooses which message available for him to edit he wants to edit
+                                                            break;
+                                                        } catch (NullPointerException npe) {
+                                                            JOptionPane.showMessageDialog(null, "Please select a " +
+                                                                    "message to edit", title, JOptionPane.WARNING_MESSAGE);
+                                                        }
+                                                    }
                                                     pwServer.write(choice);
                                                     pwServer.flush();
                                                     String msg = JOptionPane.showInputDialog(null,"Enter new " +
@@ -370,7 +377,6 @@ public class Menu {
                                                             message.setMessage(msg);                   // when we find that message in the main message history, we change its text
                                                         }
                                                     }
-                                                    saveMessages(currUser);
                                                 } else {
                                                     JOptionPane.showMessageDialog(null, "No messages to edit with" +
                                                                     " this user", title, JOptionPane.ERROR_MESSAGE);
@@ -849,7 +855,6 @@ public class Menu {
                                             break;
                                         }
                                     }
-                                    saveMessages(currUser);                        // saves changed to the messages.csv after finishing the messages part of the program
                                 } else  {
                                     break;          // breaks out of infinite loop if user chooses to exit
                                 }
@@ -1117,35 +1122,5 @@ public class Menu {
         }
         return temp;
     }
-
-    // This method is used to save changed made to the user to the "messages.csv" file
-    public static void saveMessages(User user) throws IOException {
-        ArrayList<Message> allMessages = user.getMessages();
-        ArrayList<String> temp = new ArrayList<>();
-        BufferedReader bfr = new BufferedReader(new FileReader("messages.csv"));
-        String st;
-        while ((st = bfr.readLine())!=null) {
-            ArrayList<String> mesInfo = user.customSplitSpecific(st);
-            if (!(mesInfo.get(2).equals("\"" + user.getUsername() + "\"") || mesInfo.get(3).equals("\"" + user.getUsername()+ "\"")))
-                temp.add(st);
-        }
-
-        PrintWriter pw = new PrintWriter(new FileOutputStream("messages.csv",false));
-        for (String s : temp) {                // here we write all messages that are not related to our user first
-            pw.write(s);
-            pw.println();
-            pw.flush();
-        }
-        // only after we write those that might have been changed
-        for (Message msg : allMessages) {            // here you can the format in which we write those messages to the messages.csv file
-            String ans = String.format("\"%d\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"", msg.getId(), msg.getTime(), msg.getSender(), msg.getReceiver(), msg.getMessage(), msg.isDelBySender(), msg.isDelByReceiver());
-            pw.write(ans);
-            pw.println();
-            pw.flush();
-        }
-    }
-
-
-
 }
 

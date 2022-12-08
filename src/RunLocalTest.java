@@ -176,7 +176,7 @@ public class RunLocalTest {
             User user1 = new User("Buyer1", "buyer1@purdue.edu", "password1234");
             ArrayList<Message> mList = new ArrayList<>();
             mList.add(new Message(169, "13-11-2022 02:23:31", "Buyer1", "Seller1", "Hi there", false, false));
-            Menu.saveMessages(user1);
+            Server.saveMessages(user1);
             assertEquals(mList.toString(), "[13-11-2022 02:23:31   (Buyer1 -> Seller1)\nHi there\n]");
         }
         

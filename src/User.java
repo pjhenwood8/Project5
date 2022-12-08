@@ -69,6 +69,14 @@ public class User implements Serializable {
 
     }
 
+    public void updateMessages() {
+        try {
+            messages = parseMessages();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public String getUsername() {
         return username;
     }
