@@ -19,8 +19,6 @@ import java.util.ArrayList;
 public class Menu {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         boolean online = true;
-        ArrayList<User> users = readUsers("login.csv");                 // Each line in the "login.csv" file is a
-        // User object, using special method we read whole file into an ArrayList of Users
         boolean serverConnection = false;
         Socket socket = null;
         while (!serverConnection) {
@@ -207,8 +205,8 @@ public class Menu {
 
                                     options = new String[listOfUsers.length + 2];
                                     options[0] = "Start new dialog";
-                                    if (listOfUsers.length > 0)
-                                        System.arraycopy(listOfUsers, 0, options, 1, listOfUsers.length);
+                                    if (listOfUsers.length + 1 - 1 > 0)
+                                        System.arraycopy(listOfUsers, 0, options, 1, listOfUsers.length + 1 - 1);
                                     options[options.length - 1] = "Exit";
                                     int receiveUser = JOptionPane.showOptionDialog(null,
                                             "Select user to view messages or start a dialog with a new user",
@@ -479,7 +477,6 @@ public class Menu {
                                         store =
                                                 (String) JOptionPane.showInputDialog(null, "Select store to message", title,
                                                         JOptionPane.PLAIN_MESSAGE,null, storeArr, storeArr[0]);
-                                        System.out.println(store);
                                         if (store == null) {
                                             JOptionPane.showMessageDialog(null, "You should select one store!", title,
                                                     JOptionPane.ERROR_MESSAGE);
@@ -494,7 +491,6 @@ public class Menu {
 
 
                                     // user enters the name of the store
-                                    boolean flag = true;                 // responsible for showing if store exists
                                     String msg;
                                     while (true) {
                                         msg = JOptionPane.showInputDialog(null, "Write your message: ",
@@ -517,14 +513,13 @@ public class Menu {
                                     }
 
                                     User sellerObject = (User) ois.readObject();
-
-                                    ArrayList<Message> temp = currUser.getMessages();
-                                    // tells user who is owner of the store
-                                    JOptionPane.showMessageDialog(null, "Store manager's username" +
-                                            " is " + sellerObject.getUsername() + "\nPlease wait for his " +
-                                            "message", title, JOptionPane.INFORMATION_MESSAGE);
-
-                                    if (!flag) {              // flag is false when store doesn't exist
+                                    if (sellerObject != null) {
+                                        ArrayList<Message> temp = currUser.getMessages();
+                                        // tells user who is owner of the store
+                                        JOptionPane.showMessageDialog(null, "Store manager's username" +
+                                                " is " + sellerObject.getUsername() + "\nPlease wait for his " +
+                                                "message", title, JOptionPane.INFORMATION_MESSAGE);
+                                    } else {
                                         JOptionPane.showMessageDialog(null, "That store doesn't exist!", title,
                                                 JOptionPane.ERROR_MESSAGE);
                                     }
@@ -544,6 +539,7 @@ public class Menu {
                                         options[options.length - 1] = "Exit";
 
                                         oos.writeObject(options);
+                                        oos.flush();
 
                                         int receiveUser;
                                         while (true) {
@@ -583,34 +579,14 @@ public class Menu {
                                                     break;
                                                 }
                                             }
-
-                                            boolean alreadyMessaged = false;
-
-                                            for (String u : listOfUsers) {
-                                                if (u.equals(newUser)) {
-                                                    alreadyMessaged = true;
-                                                    JOptionPane.showMessageDialog(null, "You've already messaged " +
-                                                            "this user!", title, JOptionPane.ERROR_MESSAGE, null);
-                                                }
-                                            }
-                                            boolean flag = true;
-                                            // same logic as it was in the line 123, read comments there
-                                            boolean flag2 = true;
-
-                                            User value = (User) ois.readObject();
-
-                                            if (value instanceof Buyer) {
-                                                JOptionPane.showMessageDialog(null, "You can't write to " +
-                                                        "Buyer, because you are Buyer yourself", title,
-                                                        JOptionPane.ERROR_MESSAGE, null);
-                                                flag = false;
-                                            } else if (currUser.getBlockedUsers().contains(value) || value.getBlockedUsers().contains(currUser)) {
+                                            int canMessage = bfrServer.read();
+                                            if (canMessage == 0) {
+                                                JOptionPane.showMessageDialog(null, "You've already messaged " +
+                                                        "this user!", title, JOptionPane.ERROR_MESSAGE, null);
+                                            } else if (canMessage == 1) {
                                                 JOptionPane.showMessageDialog(null, "You can't write to this " +
                                                         "user because they are blocked", title, JOptionPane.ERROR_MESSAGE, null);
-                                                flag2 = false;
-                                            }
-
-                                            if (flag && flag2 && !alreadyMessaged) {
+                                            } else {
                                                 while (true) {
                                                     String mes = JOptionPane.showInputDialog(null, "Write your hello message first!",
                                                             title, JOptionPane.PLAIN_MESSAGE);               // user enters the message he would want to send to new user
@@ -625,11 +601,6 @@ public class Menu {
                                                         break;
                                                     }
                                                 }
-                                            }
-                                            else {
-                                                pwServer.write("CONDITIONS DIDN'T MET ERROR404");
-                                                pwServer.println();
-                                                pwServer.flush();
                                             }
                                         } else if (receiveUser >= 1 && receiveUser != options.length - 1) {
                                             // if user chooses to continue conversation with the user he had conversation before
@@ -829,7 +800,7 @@ public class Menu {
                                                         }
                                                         while (true) {
                                                             choice = (int) JOptionPane.showInputDialog(null,
-                                                                    messageHist.toString() + "\nSelect message to delete",
+                                                                    messageHist + "\nSelect message to delete",
                                                                     title, JOptionPane.QUESTION_MESSAGE, null, messageNums,
                                                                     messageNums[0]);  // user chooses which message to delete
                                                             if (choice == -1) {
@@ -1064,12 +1035,7 @@ public class Menu {
                                             break;
                                         case 1:
                                             // user select unblock user
-                                            String[] blockedUsersArr = null;
-                                            try {
-                                                blockedUsersArr = (String[]) ois.readObject();
-                                            } catch (ClassNotFoundException e) {
-                                                e.printStackTrace();
-                                            }
+                                            String[] blockedUsersArr = (String[]) ois.readObject();
                                             if (blockedUsersArr.length > 0) {
                                                 String unblockUsername = (String) JOptionPane.showInputDialog(null, "Enter " +
                                                                 "name of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null,
@@ -1139,30 +1105,6 @@ public class Menu {
         ois.close();
     }
 
-
-    /*
-    This method is responsible for parse through all Users, and selecting only those with whom our User had conversations with
-    If user doesn't have conversation initiated with certain users, it won't add their username to the returning array
-    */
-    public static String[] parseUsers(User user) {
-        ArrayList<Message> messages = user.getMessages();
-        ArrayList<String> temp = new ArrayList<>();
-        for (Message message : messages) {
-            if (message.getSender().equals(user.getUsername())) {
-                if (!temp.contains(message.getReceiver()))
-                    temp.add(message.getReceiver());
-            } else {
-                if (!temp.contains(message.getSender()))
-                    temp.add(message.getSender());
-            }
-        }
-        String[] answer = new String[temp.size()];
-        for (int i = 0; i < temp.size(); i++) {
-            answer[i] = temp.get(i);
-        }
-        return answer;
-    }
-
     //this method parses mainClient messages field, and selects only messages that has thirdParty's username in it.
     //this method allows us to view private message history with specific User, whose username is passed in as "thirdParty"
     public static ArrayList<Message> parseMessageHistory(User mainClient, String thirdParty) {
@@ -1174,36 +1116,6 @@ public class Menu {
             }
         }
         return temp;
-    }
-
-
-
-    /* this is very useful method that is used to read singular lines in the files
-    it's functionality is fairly basic:
-    For example we receive an line ---          "abc","34234","I like apples, bananas, watermelon"
-    As an output it will give us an ArrayList abc(for example) where
-    abc.get(0)     ->   abc
-    abc.get(1)     ->   34234
-    abc.get(2)     ->   I like apples, bananas, watermelon
-    We couldn't use regular split() function, so we created this one to help us solve the problem
-    */
-    private static ArrayList<String> customSplitSpecific(String s)
-    {
-        ArrayList<String> words = new ArrayList<>();
-        boolean notInsideComma = true;
-        int start =0;
-        for(int i=0; i<s.length()-1; i++)
-        {
-            if(s.charAt(i) == ',' && notInsideComma)
-            {
-                words.add(s.substring(start + 1,i - 1));
-                start = i+1;
-            }
-            else if(s.charAt(i)=='"')
-                notInsideComma=!notInsideComma;
-        }
-        words.add(s.substring(start + 1, s.length() - 1));
-        return words;
     }
 
     // This method is used to save changed made to the user to the "messages.csv" file
@@ -1233,170 +1145,7 @@ public class Menu {
         }
     }
 
-    /*
-        reads the login.csv file and assigns each line to a User object. User object will consist of username,
-        email, password, a list of blocked user, if they are a buyer or seller, and sellers will have stores.
-        Then assigns users to an arraylist.
-     */
-    public static ArrayList<User> readUsers(String filename) throws FileNotFoundException {
-        File f = new File(filename);
-        ArrayList<String> lines = new ArrayList<>();
-        BufferedReader bfr = null;
-        ArrayList<User> users = new ArrayList<>();
-        if (!f.exists()) {
-            JOptionPane.showMessageDialog(null, "That file could not be found", "Error", JOptionPane.ERROR_MESSAGE);
-        } else {
-            try {
-                bfr = new BufferedReader(new FileReader(f));
-                String read = bfr.readLine();
-                while (read != null) {
-                    lines.add(read);
-                    read = bfr.readLine();
-                }
-            } catch (IOException e) {
-                JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);
-            } finally {
-                try {
-                    if (bfr != null) {
-                        bfr.close();
-                    }
-                } catch (IOException e) {
-                    JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
 
-        }
-        for (String line : lines) {
-            if (!line.isEmpty()) {
-                ArrayList<String> user = customSplitSpecific(line);
-                String username = user.get(0);
-                String email = user.get(1);
-                String password = user.get(2);
-                boolean isBuyer = user.get(3).equalsIgnoreCase("b");
-                String blockedUsers = user.get(4);
-                ArrayList<String> blockedUsernames = new ArrayList<>();
-                do {
 
-                    if (!blockedUsers.contains(",")) {
-                        blockedUsernames.add(blockedUsers);
-                        blockedUsers = "";
-                    } else {
-                        blockedUsernames.add(blockedUsers.substring(0, blockedUsers.indexOf(",")));
-                        blockedUsers = blockedUsers.substring(blockedUsers.indexOf(",") + 1);
-                    }
-                } while (!blockedUsers.isEmpty());
-                if (isBuyer) {
-                    users.add(new Buyer(username, email, password, blockedUsernames));
-                } else {
-                    Seller seller = new Seller(username, email, password, blockedUsernames);
-                    String strStores = user.get(5);
-                    if (strStores != null && !strStores.isEmpty()) {
-                        do {
-                            if (!strStores.contains(",")) {
-                                seller.createStore(strStores);
-                                strStores = "";
-                            } else {
-                                seller.createStore(strStores.substring(0, strStores.indexOf(",")));
-                                strStores = strStores.substring(strStores.indexOf(",") + 1);
-                            }
-                        } while (!strStores.isEmpty());
-                    }
-                    users.add(seller);
-                }
-            }
-        }
-        return users;
-    }
-
-    /*
-        reads the stores.csv file and assigns each line to a Store object. Store object will consist of store name,
-        number of times this store was messaged, and users that messaged this store. Then assigns stores to an Arraylist.
-     */
-    public static ArrayList<Store> readStores(String filename, ArrayList<User> users) throws FileNotFoundException {
-        File f = new File(filename);
-        ArrayList<String> lines = new ArrayList<>();
-        BufferedReader bfr = null;
-        ArrayList<Store> stores = new ArrayList<>();
-        if (!f.exists()) {
-            throw new FileNotFoundException("File doesn't exist");
-        } else {
-            try {
-                bfr = new BufferedReader(new FileReader(f));
-                String read = bfr.readLine();
-                while (read != null) {
-                    lines.add(read);
-                    read = bfr.readLine();
-                }
-            } catch (IOException e) {
-                JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);
-            } finally {
-                try {
-                    if (bfr != null) {
-                        bfr.close();
-                    }
-                } catch (IOException e) {
-                    JOptionPane.showMessageDialog(null, "There was an Error", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-
-        }
-        for (String line : lines) {
-            if (!line.isEmpty()) {
-                ArrayList<String> strStores = customSplitSpecific(line);
-                String storeName = strStores.get(0);
-                int messagesReceived = Integer.parseInt(strStores.get(1));
-                String messagedUsers = strStores.get(2);
-                ArrayList<String> messageUsers = new ArrayList<>();
-                ArrayList<Buyer> buyers = new ArrayList<>();
-                do {
-
-                    if (!messagedUsers.contains(",")) {
-                        messageUsers.add(messagedUsers);
-                        messagedUsers = "";
-                    } else {
-                        messageUsers.add(messagedUsers.substring(0, messagedUsers.indexOf(",")));
-                        messagedUsers = messagedUsers.substring(messagedUsers.indexOf(",") + 1);
-                    }
-                } while (!messagedUsers.isEmpty());
-                for (String s : messageUsers) {
-                    for (User u : users) {
-                        if (u instanceof Buyer && u.getUsername().equals(s)) {
-                            buyers.add((Buyer) u);
-                        }
-                    }
-                }
-                stores.add(new Store(storeName, messagesReceived, buyers));
-            }
-        }
-        return stores;
-    }
-
-    // Writes stores to stores.csv. writes store names, number of times store was messaged. and users that messaged this store
-    public static void writeStores(String filename, ArrayList<Store> stores) {
-        File f = new File(filename);
-        try (PrintWriter pw = new PrintWriter(new FileOutputStream(f, false))) {
-            for (Store s : stores) {
-                pw.print("\"" + s.getStoreName() + "\",\"" + s.getMessagesReceived() + "\",\"");
-                if (s.getUserMessaged().size() > 0) {
-                    ArrayList<String> userMessaged = new ArrayList<>();
-                    for (Buyer b : s.getUserMessaged()) {
-                        userMessaged.add(b.getUsername());
-                    }
-                    for (int i = 0; i < userMessaged.size(); i++) {
-                        if (i != userMessaged.size() - 1) {
-                            pw.print(userMessaged.get(i) + ",");
-                        } else {
-                            pw.print(userMessaged.get(i) + "\"");
-                        }
-                    }
-                } else {
-                    pw.print("\"");
-                }
-                pw.println();
-            }
-        } catch (FileNotFoundException e) {
-            JOptionPane.showMessageDialog(null, "That file could not be found", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
 }
 

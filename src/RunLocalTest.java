@@ -120,7 +120,7 @@ public class RunLocalTest {
             @Test(timeout = 1000)
         public void testParseUsers(){
             User user1 = new User("Buyer1", "buyer1@purdue.edu", "password1234");
-            assertEquals(Arrays.toString(new String[]{"Seller1"}), Arrays.toString(Menu.parseUsers(user1)));
+            assertEquals(Arrays.toString(new String[]{"Seller1"}), Arrays.toString(Server.parseUsers(user1)));
         }
 
         @Test(timeout = 1000)
@@ -196,7 +196,7 @@ public class RunLocalTest {
             sList.add(store1);
             sList.add(store2);
             sList.add(store3);
-            Menu.writeStores("test.csv", sList);
+            Server.writeStores("test.csv", sList);
             BufferedReader br = new BufferedReader(new FileReader("test.csv"));
             String line = br.readLine();
             String concStr = "";
@@ -219,7 +219,7 @@ public class RunLocalTest {
             ArrayList<Message> expected = new ArrayList<>();
             expected.add(new Message("sender1","receiver","Test1"));
             try {
-                //assertEquals(expected.toString(), menu.parseStoreMessages(user, "sender1").toString());
+                assertEquals(expected.toString(), Server.parseStoreMessages(user, "sender1").toString());
             } catch (AssertionError e) {
                 e.printStackTrace();
             }
@@ -243,7 +243,8 @@ public class RunLocalTest {
                 e.printStackTrace();
             }
             try {
-                assertEquals(expectedStore.get(0).getStoreName(), menu.readStores("test.csv", users).get(0).getStoreName());
+                assertEquals(expectedStore.get(0).getStoreName(),
+                        Server.readStores("test.csv", users).get(0).getStoreName());
             } catch (AssertionError e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -266,7 +267,7 @@ public class RunLocalTest {
                 e.printStackTrace();
             }
             try {
-                assertEquals(users.get(0).getEmail(), menu.readUsers("test.csv").get(0).getEmail());
+                assertEquals(users.get(0).getEmail(), Server.readUsers("test.csv").get(0).getEmail());
             } catch(IOException e) {
                 e.printStackTrace();
             } catch (AssertionError e) {
