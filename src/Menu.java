@@ -21,7 +21,6 @@ public class Menu {
         boolean online = true;
         ArrayList<User> users = readUsers("login.csv");                 // Each line in the "login.csv" file is a
         // User object, using special method we read whole file into an ArrayList of Users
-        ArrayList<Store> stores = readStores("stores.csv", users);      // We do the same thing with the stores objects
         boolean serverConnection = false;
         Socket socket = null;
         while (!serverConnection) {
@@ -48,6 +47,9 @@ public class Menu {
         ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
         String email = "";
         String pass = "";
+        String[] buyers = null;
+        String[] sellers = null;
+        String[] userArr = null;
         while (online) {
             String title = "Welcome to the Marketplace Messaging System!";
             String[] options;
@@ -157,6 +159,9 @@ public class Menu {
                         loggedIn = true;
                         JOptionPane.showMessageDialog(null, "Successfully logged in as " + currUser.getUsername(), "Marketplace " +
                                 "Messaging System", JOptionPane.INFORMATION_MESSAGE);
+                        buyers = (String[]) ois.readObject();
+                        sellers = (String[]) ois.readObject();
+                        userArr = (String[]) ois.readObject();
                     } else {
                         if (choice == 0) {
                             JOptionPane.showMessageDialog(null, "Your email or password was incorrect", "Login",
@@ -170,37 +175,6 @@ public class Menu {
             }
 
             // Confirmation message, when user is able to log in
-            int numOfBuyers = 0;
-            int numOfSellers = 0;
-            for (User u : users) {
-                if (u instanceof Buyer) {
-                    numOfBuyers++;
-                } else if (u instanceof Seller) {
-                    numOfSellers++;
-                }
-            }
-            String[] buyers = new String[numOfBuyers];
-            int n = 0;
-            for (User u : users) {
-                if (u instanceof Buyer) {
-                    buyers[n] = u.getUsername();
-                    n++;
-                }
-            }
-            String[] sellers = new String[numOfSellers];
-            n = 0;
-            for (User u : users) {
-                if (u instanceof Seller) {
-                    sellers[n] = u.getUsername();
-                    n++;
-                }
-            }
-            String[] userArr = new String[users.size()];
-            n = 0;
-            for (User u : users) {
-                userArr[n] = u.getUsername();
-                n++;
-            }
 
             while (loggedIn) {
                 if (currUser != null) {
@@ -229,54 +203,45 @@ public class Menu {
                                     user had conversations before. That way we are able to avoid situation where messages not
                                     related to the user are being used.
                                     */
-                                    String[] listOfUsers = parseUsers(currUser);
+                                    String[] listOfUsers = (String[]) ois.readObject();
+
                                     options = new String[listOfUsers.length + 2];
                                     options[0] = "Start new dialog";
-                                    if (listOfUsers.length + 1 - 1 >= 0)
-                                        System.arraycopy(listOfUsers, 0, options, 1, listOfUsers.length + 1 - 1);
+                                    if (listOfUsers.length > 0)
+                                        System.arraycopy(listOfUsers, 0, options, 1, listOfUsers.length);
                                     options[options.length - 1] = "Exit";
                                     int receiveUser = JOptionPane.showOptionDialog(null,
                                             "Select user to view messages or start a dialog with a new user",
                                             title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
                                             options, options[options.length - 1]);
+                                    pwServer.write(receiveUser);
+                                    pwServer.flush();
                                     if (receiveUser == 0) {
                                         // dialog with new user
                                         String newUser = (String) JOptionPane.showInputDialog(null, "Select buyer to message",
                                                 title, JOptionPane.QUESTION_MESSAGE, null, buyers,
                                                 buyers[0]);         // Enter name of the new user
-                                        boolean alreadyMessaged = false;
-                                        for (String u : listOfUsers) {
-                                            if (u.equals(newUser)) {
-                                                alreadyMessaged = true;                 // if you already messaged the user before, it will show this message that you already messaged him before
-                                                JOptionPane.showMessageDialog(null, "You've already messaged this" +
-                                                        " user!", title, JOptionPane.ERROR_MESSAGE, null);
-                                            }
-                                        }
-                                        boolean flag = true;           // This flag is responsible for identifying if sender and receiver are the same type
-                                        // This flag is responsible for showing if user exists
-                                        boolean flag2 = true;          // This flag is responsible for checking if user to which you are texting blocked you, or you blocked that user before
-                                        for (User value : users) {
-                                            if (value.getUsername().equals(newUser)) {
-                                                if (value instanceof Seller) {
-                                                    JOptionPane.showMessageDialog(null, "You can't write to " +
-                                                            "Seller, because you are Seller yourself", title, JOptionPane.ERROR_MESSAGE, null);
-                                                    flag = false;       // means that user to which you are trying to text is also an instance of Seller, which should be possible
-                                                                        // you should only be able to text Buyers as a Seller
-                                                } else if (currUser.getBlockedUsers().contains(value) || value.getBlockedUsers().contains(currUser)) {
-                                                    JOptionPane.showMessageDialog(null, "You can't write to this " +
-                                                            "user because they are blocked", title, JOptionPane.ERROR_MESSAGE, null);
-                                                    flag2 = false;      // flag2 = false; means that one user blocked the other
-                                                }
-                                            }
-                                        }
-                                        if (flag && flag2 && !alreadyMessaged) {     // this code runs if
+                                        pwServer.write(newUser);
+                                        pwServer.println();
+                                        pwServer.flush();
+                                        int canMessage = bfrServer.read();
+                                        if (canMessage == 0) {
+                                            JOptionPane.showMessageDialog(null, "You've already messaged this" +
+                                                    " user!", title, JOptionPane.ERROR_MESSAGE, null);
+                                        } else if (canMessage == 1) {
+                                            JOptionPane.showMessageDialog(null, "You can't write to this " +
+                                                    "user because they are blocked", title, JOptionPane.ERROR_MESSAGE, null);
+                                        } else {
                                             // user exists, user is Buyer, you didn't block each other
                                             String mes = JOptionPane.showInputDialog(null, "Write your hello message first!",
                                                     title, JOptionPane.PLAIN_MESSAGE);               // user enters the message he would want to send to new user
+                                            pwServer.write(mes);
+                                            pwServer.println();
+                                            pwServer.flush();
                                             ArrayList<Message> temp = currUser.getMessages();  // creates new ArrayList with user messages
                                             temp.add(new Message(currUser.getUsername(), newUser, mes));    // adds new message to that ArrayList
                                             currUser.setMessages(temp);                        // updates the messages field on the user
-                                            messageHistory = parseMessageHistory(currUser, newUser);     // after the
+                                            messageHistory = (ArrayList<Message>) ois.readObject();     // after the
                                             // messages field was updated, we update the messageHistory and print that out
                                             messageHist = new StringBuilder(String.format("Message " +
                                                     "History: %s - %s%n", currUser.getUsername(), newUser));
@@ -284,11 +249,11 @@ public class Menu {
                                                 messageHist.append(message.toString());
                                             }
                                         }
-                                    } else if (receiveUser >= 1 && receiveUser != options.length - 1) {           // if user doesn't choose to start
-                                        // new dialog or exit the program
-                                                                             // receiveUser is to view conversations you had before with other users
+                                    } else if (receiveUser >= 1 && receiveUser != options.length - 1) {
+                                        // if user doesn't choose to start new dialog or exit the program receiveUser
+                                        // is to view conversations you had before with other users
                                         while (true) {
-                                            messageHistory = parseMessageHistory(currUser, listOfUsers[receiveUser - 1]);        // update messageHistory to print that out
+                                            messageHistory = (ArrayList<Message>) ois.readObject();        // update messageHistory to print that out
                                             messageHist = new StringBuilder(String.format("Message " +
                                                     "History: %s - " +
                                                             "%s%n----------------------------------------%n",
@@ -322,9 +287,11 @@ public class Menu {
                                             options = new String[]{"Write Message", "Edit Message", "Delete " +
                                                     "Message", "Export History to CSV", "Exit"};
                                             int optionChoice = JOptionPane.showOptionDialog(null,
-                                                    messageHist.toString() + "\nSelect an option to proceed",
+                                                    messageHist + "\nSelect an option to proceed",
                                                     title, JOptionPane.YES_NO_OPTION,
                                                     JOptionPane.QUESTION_MESSAGE, null, options, options[4]);
+                                            pwServer.write(optionChoice);
+                                            pwServer.flush();
                                             if (optionChoice == 0) {            // writing new messages
                                                 // you are presented with two options as described before
                                                 // 1 - regular message          2 - upload a txt file
@@ -333,32 +300,33 @@ public class Menu {
                                                         "to send a message or upload a text file?", title,
                                                         JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
                                                         null, options, options[0]);
+                                                pwServer.write(fileOrText);
+                                                pwServer.flush();
                                                 if (fileOrText == 0) {       // regular message
                                                     String mes = JOptionPane.showInputDialog(null, "Write your message: ",
                                                             title, JOptionPane.PLAIN_MESSAGE);
+                                                    pwServer.write(mes);
+                                                    pwServer.println();
+                                                    pwServer.flush();
                                                     ArrayList<Message> temp = currUser.getMessages();
                                                     temp.add(new Message(currUser.getUsername(), listOfUsers[receiveUser - 1], mes));
                                                     currUser.setMessages(temp);        // updates the messages field of the user to the renewed messageHistory
                                                 } else if (fileOrText == 1) {      //uploading files
                                                     String fileName = JOptionPane.showInputDialog(null, "Enter " +
                                                                     "name of txt file: ", title, JOptionPane.PLAIN_MESSAGE);    // enters name of the file
-                                                    String mes;
-                                                    try {
-                                                        ArrayList<String> tempArr = new ArrayList<>();
-                                                        BufferedReader bfr = new BufferedReader(new FileReader(fileName));
-                                                        String st;
-                                                        while ((st = bfr.readLine()) != null) {
-                                                            tempArr.add(st);                     // reads whole file and saves lines to ArrayList
-                                                        }
-                                                        mes = String.join("\\n",tempArr);              // combine all lines in the file by \\n which shows up as \n in the messages.csv file
-                                                                                                               // we read it as new line when writing all messages
+                                                    pwServer.write(fileName);
+                                                    pwServer.println();
+                                                    pwServer.flush();
+                                                                                                          // we read it as new line when writing all messages
+                                                    int error = bfrServer.read();
+                                                    if (error == 0) {
+                                                        String mes = bfrServer.readLine();
                                                         ArrayList<Message> temp = currUser.getMessages();
                                                         temp.add(new Message(currUser.getUsername(), listOfUsers[receiveUser - 1], mes));
                                                         currUser.setMessages(temp);                  // updates the messages field of the user
-                                                    }
-                                                    catch (FileNotFoundException e) {         // if user enters file that does not exist
-                                                        JOptionPane.showMessageDialog(null, "That file could not be " +
-                                                                "found", "Error", JOptionPane.ERROR_MESSAGE);
+                                                    } else {
+                                                        JOptionPane.showMessageDialog(null, "That file doesn't exist"
+                                                                , title, JOptionPane.ERROR_MESSAGE);
                                                     }
                                                 }
                                                 saveMessages(currUser);
@@ -387,11 +355,16 @@ public class Menu {
                                                         messageNums[j] = j + 1;
                                                     }
                                                     choice = (int) JOptionPane.showInputDialog(null,
-                                                            messageHist.toString() + "\nSelect message to edit",
+                                                            messageHist + "\nSelect message to edit",
                                                             title, JOptionPane.QUESTION_MESSAGE, null, messageNums,
                                                             messageNums[0]); //user chooses which message available for him to edit he wants to edit
+                                                    pwServer.write(choice);
+                                                    pwServer.flush();
                                                     String msg = JOptionPane.showInputDialog(null,"Enter new " +
                                                             "message: ", title, JOptionPane.PLAIN_MESSAGE);
+                                                    pwServer.write(msg);
+                                                    pwServer.println();
+                                                    pwServer.flush();
                                                     // user enters the message to which user wants to change his message
                                                     Message temp = userIsSender.get(choice - 1);       // we grab value form the userIsSender which stores only messages where main user is sender
                                                     for (Message message : messageHistory) {
@@ -427,9 +400,11 @@ public class Menu {
                                                         messageNums[j] = j + 1;
                                                     }
                                                     choice = (int) JOptionPane.showInputDialog(null,
-                                                            messageHist.toString() + "\nSelect message to delete",
+                                                            messageHist + "\nSelect message to delete",
                                                             title, JOptionPane.QUESTION_MESSAGE, null, messageNums,
                                                             messageNums[0]);  // user chooses which message to delete
+                                                    pwServer.write(choice);
+                                                    pwServer.flush();
                                                     Message temp = userIsSender.get(choice - 1);        // we assign the message user chose to Message temp variable
                                                     ArrayList<Message> allUserMessages = currUser.getMessages();
                                                     for (int j = 0; j < allUserMessages.size(); j++) {
@@ -453,14 +428,9 @@ public class Menu {
                                                 String fileName = JOptionPane.showInputDialog(null, "Enter " +
                                                         "name of the file to which you want to export your " +
                                                         "message history", title, JOptionPane.QUESTION_MESSAGE); // enters the file name
-                                                PrintWriter pw = new PrintWriter(new FileOutputStream(fileName,false));
-                                                for (Message msg : messageHistory) {
-                                                    // this line writes Message object in the same manner as it does in main "messages.csv" file
-                                                    String ans = String.format("\"%d\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"", msg.getId(), msg.getTime(), msg.getSender(), msg.getReceiver(), msg.getMessage(), msg.isDelBySender(), msg.isDelByReceiver());
-                                                    pw.write(ans);
-                                                    pw.println();
-                                                    pw.flush();
-                                                }
+                                                pwServer.write(fileName);
+                                                pwServer.println();
+                                                pwServer.flush();
                                                 // confirmation that history was saved
                                                 JOptionPane.showMessageDialog(null, "Your message history was successfully " +
                                                         "saved to " + fileName, title, JOptionPane.INFORMATION_MESSAGE);
@@ -499,13 +469,10 @@ public class Menu {
 
                                 // user chooses the option
                                 if (makeChoice == 0) {           // user chooses to text the store
-                                    StringBuilder listStores = new StringBuilder(String.format("List of Stores: " +
-                                            "%n----------------------------------------%n"));
                                     ArrayList<Store> allStoresFromServer = (ArrayList<Store>) ois.readObject();
                                     String[] storeArr = new String[allStoresFromServer.size()];
                                     for (int i = 0; i < allStoresFromServer.size(); i++) {
                                         storeArr[i] = allStoresFromServer.get(i).getStoreName();
-                                        listStores.append(stores.get(i).getStoreName());
                                     }
                                     String store;
                                     while (true) {
