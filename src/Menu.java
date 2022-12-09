@@ -157,9 +157,6 @@ public class Menu {
                         loggedIn = true;
                         JOptionPane.showMessageDialog(null, "Successfully logged in as " + currUser.getUsername(), "Marketplace " +
                                 "Messaging System", JOptionPane.INFORMATION_MESSAGE);
-                        buyers = (String[]) ois.readObject();
-                        sellers = (String[]) ois.readObject();
-                        userArr = (String[]) ois.readObject();
                     } else {
                         if (choice == 0) {
                             JOptionPane.showMessageDialog(null, "Your email or password was incorrect", "Login",
@@ -176,7 +173,9 @@ public class Menu {
 
             while (loggedIn) {
                 if (currUser != null) {
-
+                    buyers = (String[]) ois.readObject();
+                    sellers = (String[]) ois.readObject();
+                    userArr = (String[]) ois.readObject();
                     /*
                     When user logs in, he is presented with 4 options:
                     1) Messages is the part of the program where user is able to send messages to either Customers or Sellers, depending on who is User itself
@@ -328,8 +327,7 @@ public class Menu {
                                                     }
                                                 }
                                             } else if (optionChoice == 1) {          // editing messages
-                                                messageHistory = parseMessageHistory(currUser,
-                                                        listOfUsers[receiveUser - 1]);
+                                                messageHistory = (ArrayList<Message>) ois.readObject();
                                                 ArrayList<Message> userIsSender = new ArrayList<>();         // here only messages that are sends by the current user will be saved
                                                 int i = 0;
                                                 int z = 0;
@@ -382,8 +380,7 @@ public class Menu {
                                                                     " this user", title, JOptionPane.ERROR_MESSAGE);
                                                 }
                                             } else if (optionChoice == 2) {             // deleting messages
-                                                messageHistory = parseMessageHistory(currUser,
-                                                        listOfUsers[receiveUser - 1]);       // we save message history
+                                                messageHistory = (ArrayList<Message>) ois.readObject();       // we save message history
                                                 ArrayList<Message> userIsSender = new ArrayList<>();         // I guess here I was kind of lazy, so userIsSender now stores every message in it
                                                 // because in deleting messages it doesn't really matter if you aren't creator of the message
                                                 // since you can delete whether message you wish for
@@ -747,7 +744,7 @@ public class Menu {
                                                         }
                                                         while (true) {
                                                             choice = (int) JOptionPane.showInputDialog(null,
-                                                                    messageHist.toString() + "\nSelect message to edit",
+                                                                    messageHist + "\nSelect message to edit",
                                                                     title, JOptionPane.QUESTION_MESSAGE, null, messageNums,
                                                                     messageNums[0]); //user chooses which message available for him to edit he wants to edit
                                                             if (choice == -1) {
@@ -1108,19 +1105,6 @@ public class Menu {
         pwServer.close();
         oos.close();
         ois.close();
-    }
-
-    //this method parses mainClient messages field, and selects only messages that has thirdParty's username in it.
-    //this method allows us to view private message history with specific User, whose username is passed in as "thirdParty"
-    public static ArrayList<Message> parseMessageHistory(User mainClient, String thirdParty) {
-        ArrayList<Message> messages = mainClient.getMessages();
-        ArrayList<Message> temp = new ArrayList<>();
-        for (Message message : messages) {
-            if (message.getSender().equals(thirdParty) || message.getReceiver().equals(thirdParty)) {
-                temp.add(message);
-            }
-        }
-        return temp;
     }
 }
 

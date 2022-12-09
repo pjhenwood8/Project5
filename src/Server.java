@@ -115,11 +115,14 @@ public class Server {
                                 oos.writeObject(user);
                                 if (user != null) {
                                     loggingIn = false;
-                                    oos.writeObject(buyers);
-                                    oos.writeObject(sellers);
-                                    oos.writeObject(userArr);
                                 }
                             }
+                            oos.writeObject(buyers);
+                            oos.flush();
+                            oos.writeObject(sellers);
+                            oos.flush();
+                            oos.writeObject(userArr);
+                            oos.flush();
                             int choice = reader.read();
                             if (choice == 0) {       // MESSAGES / STATISTICS / ACCOUNT / EXIT
                                 user.updateMessages();
@@ -529,6 +532,8 @@ public class Server {
                                                     saveMessages(user);
                                                 } else if (optionChoice == 1) {          // editing messages
                                                     messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
+                                                    oos.writeObject(messageHistory);
+                                                    oos.flush();
                                                     ArrayList<Message> userIsSender = new ArrayList<>();         // here only messages that are sends by the current user will be saved
                                                     int i = 0;
                                                     int z = 0;
@@ -561,6 +566,8 @@ public class Server {
                                                     }
                                                 } else if (optionChoice == 2) {             // deleting messages
                                                     messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);       // we save message history
+                                                    oos.writeObject(messageHistory);
+                                                    oos.flush();
                                                     ArrayList<Message> userIsSender = new ArrayList<>();         // I guess here I was kind of lazy, so userIsSender now stores every message in it
                                                     // because in deleting messages it doesn't really matter if you aren't creator of the message
                                                     // since you can delete whether message you wish for
@@ -1223,6 +1230,8 @@ public class Server {
         }
     }
 
+    //this method parses mainClient messages field, and selects only messages that has thirdParty's username in it.
+    //this method allows us to view private message history with specific User, whose username is passed in as "thirdParty"
     public static ArrayList<Message> parseMessageHistory(User mainClient, String thirdParty) {
         ArrayList<Message> messages = mainClient.getMessages();
         ArrayList<Message> temp = new ArrayList<>();
