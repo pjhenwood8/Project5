@@ -46,37 +46,6 @@ public class Server {
                 ArrayList<User> allUsers = readUsers("login.csv");
                 ArrayList<Store> allStores = readStores("stores.csv", allUsers);
                 addBlockedUsers(allUsers);
-                int numOfBuyers = 0;
-                int numOfSellers = 0;
-                for (User u : allUsers) {
-                    if (u instanceof Buyer) {
-                        numOfBuyers++;
-                    } else if (u instanceof Seller) {
-                        numOfSellers++;
-                    }
-                }
-                String[] buyers = new String[numOfBuyers];
-                int n = 0;
-                for (User u : allUsers) {
-                    if (u instanceof Buyer) {
-                        buyers[n] = u.getUsername();
-                        n++;
-                    }
-                }
-                String[] sellers = new String[numOfSellers];
-                n = 0;
-                for (User u : allUsers) {
-                    if (u instanceof Seller) {
-                        sellers[n] = u.getUsername();
-                        n++;
-                    }
-                }
-                String[] userArr = new String[allUsers.size()];
-                n = 0;
-                for (User u : allUsers) {
-                    userArr[n] = u.getUsername();
-                    n++;
-                }
 
                 try {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -88,6 +57,37 @@ public class Server {
                         User user = null;
                         boolean loggingIn = true;
                         while (true) {
+                            int numOfBuyers = 0;
+                            int numOfSellers = 0;
+                            for (User u : allUsers) {
+                                if (u instanceof Buyer) {
+                                    numOfBuyers++;
+                                } else if (u instanceof Seller) {
+                                    numOfSellers++;
+                                }
+                            }
+                            String[] buyers = new String[numOfBuyers];
+                            int n = 0;
+                            for (User u : allUsers) {
+                                if (u instanceof Buyer) {
+                                    buyers[n] = u.getUsername();
+                                    n++;
+                                }
+                            }
+                            String[] sellers = new String[numOfSellers];
+                            n = 0;
+                            for (User u : allUsers) {
+                                if (u instanceof Seller) {
+                                    sellers[n] = u.getUsername();
+                                    n++;
+                                }
+                            }
+                            String[] userArr = new String[allUsers.size()];
+                            n = 0;
+                            for (User u : allUsers) {
+                                userArr[n] = u.getUsername();
+                                n++;
+                            }
                             while (loggingIn) {
                                 int choice = reader.read();
                                 if (choice == 0) {                 // LOGIN / CREATE ACCOUNT / EXIT
@@ -193,14 +193,8 @@ public class Server {
                                             }
 
                                             if (receiveUser == 0) {                 // START NEW DIALOG
-                                                ArrayList<String> listOfSellers = new ArrayList<String>();
-                                                for (User u : allUsers) {
-                                                    if (u instanceof Seller) {
-                                                        listOfSellers.add(u.getUsername());
-                                                    }
-                                                }
 //
-                                                oos.writeObject(listOfSellers);          // we send to Buyer all sellers
+                                                oos.writeObject(sellers);          // we send to Buyer all sellers
 //                                                                                     // he can text to
                                                 oos.flush();
 

@@ -1,17 +1,23 @@
 # Project 5
 Project 5 for CS 180 
-To run the project code, you need to run the main method in the Menu.java class.
-After starting the program, the follow-ups and tips will be shown to user, 
-which will guide him on how to use the program
+To run the project code, first run Server.java. Once the sever is running users can 
+connect by running Menu.java. Users will be prompted with an input dialog for the port number.
+The Users will input 4242 to connect to the server and use the messaging system.
+After connecting to server, the follow-ups and tips will be shown to user, 
+which will guide him on how to use the program.
 
 PJ Henwood was responsible for submitting the report on the project on BrightSpace
 
 Alimzhan Sultanov was responsible for submitting the code
 
-Menu.java is main class of the project. There you will be able to log in with existing account, create
+Menu.java is the client class of the project. This class contains the GUI that the user will interact with 
+in order to progress through the menus. At the beginning, the user will be able to log in with existing account, create
 a new account, or exit. Once logged in, the user will be able to write messages, edit them, and delete them.
-Furthermore, users will also be able to view statistics of those messages, change the password, and email of 
-the account.
+Furthermore, users will also be able to view statistics of those messages, change the password and email of 
+the account, delete their account, and block users from messaging them.
+
+Server.java is the server for the project. This class contains the methods that read and write to the csv files 
+and all the data for this program that will be sent to the client when needed.
 
 Message.java is file for managing messages from the messages.csv file. Message.java allows us to convert
 each line in the messages.csv into the Message object with specific field, using methods in Message.java.
