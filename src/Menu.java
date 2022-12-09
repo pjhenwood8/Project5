@@ -283,7 +283,7 @@ public class Menu {
                                                -1) If you want to export your current message history, all you need is to enter -1 and write name of the csv file you want to save your changes to
                                             */
                                             options = new String[]{"Write Message", "Edit Message", "Delete " +
-                                                    "Message", "Export History to CSV", "Exit"};
+                                                    "Message", "Export History to CSV", "Exit (Updates Messages)"};
                                             int optionChoice = JOptionPane.showOptionDialog(null,
                                                     messageHist + "\nSelect an option to proceed",
                                                     title, JOptionPane.YES_NO_OPTION,
@@ -629,7 +629,7 @@ public class Menu {
                                                  read comments on the line 166, identical features
                                                 */
                                                 options = new String[]{"Write Message", "Edit Message", "Delete " +
-                                                        "Message", "Export History to CSV", "Exit"};
+                                                        "Message", "Export History to CSV", "Exit (Updates Messages)"};
 
                                                 int optionChoice;
                                                 while (true) {
@@ -1072,9 +1072,9 @@ public class Menu {
                                     }
                                 } else if (choice == 3 && currUser instanceof Seller) {
                                     String storeName;
+                                    String userStores = bfrServer.readLine().replaceAll("\\\\n", "\n");
                                     do {
                                         // if user is seller allow user to create store
-                                        String userStores = bfrServer.readLine().replaceAll("\\\\n", "\n");
                                          storeName = JOptionPane.showInputDialog(null,
                                                 userStores, title, JOptionPane.QUESTION_MESSAGE);
                                     } while (storeName == null);

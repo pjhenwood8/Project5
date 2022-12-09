@@ -152,10 +152,8 @@ public class Server {
                                         temp.add(new Message(user.getUsername(),
                                                 sellerToMessage.getUsername(), message));                  //
                                         // writes new message
-                                        user.setMessages(temp);               // update the messages field of
-                                        // the user
-                                        for (Store s : ((Seller) sellerToMessage).getNewStores()) {    //didn't quite
-                                            // understand this part of the code Jalen wrote
+                                        user.setMessages(temp);               // update the messages field of the user
+                                        for (Store s : ((Seller) sellerToMessage).getNewStores()) {
                                             if (s.getStoreName().equalsIgnoreCase(storeNameToMessage)) {
                                                 s.addMessagesReceived();
                                                 if (!s.getUserMessaged().contains(user)) {
@@ -173,6 +171,7 @@ public class Server {
                                             }
                                         }
                                         saveMessages(user);
+                                        user.updateMessages();
                                     } else if (choice == 1) {              //WRITE TO STORE/ WRITE TO SELLER / EXIT
                                         // if user chooses to write to the specific Seller directly
                                         while (true) {
@@ -237,13 +236,16 @@ public class Server {
                                                     writer.write(2);
                                                     writer.flush();
                                                     String mes = reader.readLine();
+                                                    user.updateMessages();
                                                     ArrayList<Message> userMessagesTemp = user.getMessages();
                                                     userMessagesTemp.add(new Message(user.getUsername(), sellerToWrite, mes));
                                                     user.setMessages(userMessagesTemp);
                                                     saveMessages(user);
+                                                    user.updateMessages();
                                                 }
                                             } else if (receiveUser >= 1 && receiveUser != options.length - 1) {           // if user chooses to continue
                                                 // conversation with the user he had conversation before
+                                                user.updateMessages();
                                                 while (true) {
                                                     messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
 
@@ -266,6 +268,7 @@ public class Server {
                                                         if (fileOrText == 0) {              // if user sends regular message
                                                             // System.out.println("Enter message: ");
                                                             String mes = reader.readLine();
+                                                            user.updateMessages();
                                                             ArrayList<Message> temp = user.getMessages();
                                                             temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
                                                             user.setMessages(temp);
@@ -283,6 +286,7 @@ public class Server {
                                                                     tempArr.add(st);
                                                                 }
                                                                 mes = String.join("\\n", tempArr);
+                                                                user.updateMessages();
                                                                 ArrayList<Message> temp = user.getMessages();
                                                                 temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
                                                                 user.setMessages(temp);
@@ -333,6 +337,7 @@ public class Server {
                                                                 }
                                                             }
                                                             saveMessages(user);
+                                                            user.updateMessages();
                                                         }
                                                     }
                                                     // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
@@ -370,6 +375,7 @@ public class Server {
                                                             }
                                                             user.refreshMessages();
                                                             saveMessages(user);
+                                                            user.updateMessages();
                                                         }
                                                     } else if (optionChoice == 3) {
                                                         // if he chooses to export messages to the csv file
@@ -443,6 +449,7 @@ public class Server {
                                                 writer.flush();
                                                 String mes = reader.readLine();               // user enters the message he would
                                                 // want to send to new user
+                                                user.updateMessages();
                                                 ArrayList<Message> temp = user.getMessages();  // creates new ArrayList with user messages
                                                 temp.add(new Message(user.getUsername(), newUser, mes));    // adds new message to that ArrayList
                                                 user.setMessages(temp);                        // updates the messages field on the user
@@ -450,29 +457,22 @@ public class Server {
                                                 oos.writeObject(messageHistory);
                                                 oos.flush();
                                                 saveMessages(user);
+                                                user.updateMessages();
                                             }
 
                                         } else if (receiveUser >= 1 && receiveUser != listOfUsers.length + 1) {
+                                            user.updateMessages();
                                             // if user doesn't choose to start new dialog or exit the program receiveUser is
                                             // to view conversations you had before with other users
                                             while (true) {
                                                 messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);        // update messageHistory to print that out
                                                 oos.writeObject(messageHistory);
                                                 oos.flush();
-//                                            for (Message value : messageHistory) {
-//                                                if (value.getMessage().contains("\\n")) {        // this part of the code is here in case if message has multiple lines in it
-//                                                    String ansMes = value.getMessage().replaceAll("\\\\n", "\n");  // it replaces signs of new lines, to actual new lines
-//                                                    String ans = String.format("%s   (%s -> %s)%n%s%n", value.getTime(), value.getSender(), value.getReceiver(), ansMes);  // same implementation as in Message class, but with specific message string
-//                                                    System.out.print(ans);
-//                                                } else
-//                                                    System.out.print(value);     // if it's regular one line message, then it uses basic toString() method of Message class
-//                                            }
-//                                            System.out.println();
                                             /* User is presented with 5 options of what they can in the Message part with specific user
                                                1) Write new message
                                                when writing new message you are presented with 2 options
                                                     1) Either write a regular message
-                                                        you type a message and it send it to the receiver
+                                                        you type a message, and it sends it to the receiver
                                                     2) Upload a txt file, contents of which will be included in the message
                                                         it will read through the file content and add new lines where needed
                                                2) Edit message
@@ -499,8 +499,10 @@ public class Server {
                                                     if (fileOrText == 0) {       // regular message
                                                         //System.out.println("Enter message: ");
                                                         String mes = reader.readLine();
+                                                        user.updateMessages();
                                                         ArrayList<Message> temp = user.getMessages();
                                                         temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
+                                                        user.updateMessages();
                                                         user.setMessages(temp);        // updates the messages field of the user to the renewed messageHistory
                                                     } else if (fileOrText == 1) {      //uploading files
                                                         //System.out.println("Enter name of txt file: ");
@@ -515,6 +517,7 @@ public class Server {
                                                             }
                                                             mes = String.join("\\n", tempArr);              // combine all lines in the file by \\n which shows up as \n in the messages.csv file
                                                             // we read it as new line when writing all messages
+                                                            user.updateMessages();
                                                             ArrayList<Message> temp = user.getMessages();
                                                             temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
                                                             user.setMessages(temp);                  // updates the messages field of the user
@@ -560,6 +563,7 @@ public class Server {
                                                             }
                                                         }
                                                         saveMessages(user);
+                                                        user.updateMessages();
                                                     }
                                                 } else if (optionChoice == 2) {             // deleting messages
                                                     messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);       // we save message history
@@ -592,6 +596,7 @@ public class Server {
                                                         // manually remove some messages in the messages field. setMessages isn't enough, because it doesn't actually remove messages
                                                         // it only updates its values
                                                         saveMessages(user);
+                                                        user.updateMessages();
                                                     }
                                                 } else if (optionChoice == 3) {            // exporting messages
 //                                                System.out.println("Enter name of the file to which you want to export your message history");
@@ -756,10 +761,10 @@ public class Server {
                                             }
                                         }
                                         // Prints the first, second, and third most commonly used words
-                                        String commonWords = "The most common word in Messages is " + word + " " +
+                                        String commonWords = "The most common word in Messages is \"" + word + "\" " +
                                                 "said " + maxCount + " times\\n" + "The second most common word in " +
-                                                "Messages is " + secondWord + " said " + secondCount + " times\\n" +
-                                                "The third most common word in Messages is " + thirdWord + " said "
+                                                "Messages is \"" + secondWord + "\" said " + secondCount + " times\\n" +
+                                                "The third most common word in Messages is \"" + thirdWord + "\" said "
                                                 + thirdCount + " times";
                                         writer.write(commonWords);
                                         writer.println();
@@ -1170,7 +1175,7 @@ public class Server {
     }
 
     // This method is used to save changed made to the user to the "messages.csv" file
-    public static void saveMessages(User user) throws IOException {
+    public synchronized static void saveMessages(User user) throws IOException {
         ArrayList<Message> allMessages = user.getMessages();
         ArrayList<String> temp = new ArrayList<>();
         BufferedReader bfr = new BufferedReader(new FileReader("messages.csv"));
