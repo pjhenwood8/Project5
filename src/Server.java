@@ -255,24 +255,21 @@ public class Server {
 
                                                     // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
                                                     // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
-                                                    if (optionChoice == 0) {                             //if user
-                                                        // chooses to write a new message
-                                                        //System.out.println("You want to send a message or upload a txt
-                                                        // file?\n[1] Send message\n[2] Upload file");
+                                                    if (optionChoice == 0) {
+                                                        //if user chooses to write a new message file?
+                                                        // [1] Send message\n[2] Upload file");
                                                         choice = reader.read();
                                                         int fileOrText = choice;
                                                         // 1-SEND MESSAGE   /   2-UPLOAD FILE
                                                         if (fileOrText == 0) {              // if user sends regular message
-                                                            // System.out.println("Enter message: ");
                                                             String mes = reader.readLine();
                                                             user.updateMessages();
                                                             ArrayList<Message> temp = user.getMessages();
                                                             temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
                                                             user.setMessages(temp);
                                                             // 1-SEND MESSAGE   /   2-UPLOAD FILE
-                                                        } else if (fileOrText == 1) {            // if user sends txt
-                                                            // file as a message
-                                                            // System.out.println("Enter name of txt file: ");
+                                                        } else if (fileOrText == 1) {
+                                                            // if user sends txt file as a message
                                                             String fileName = reader.readLine();
                                                             String mes = "";
                                                             ArrayList<String> tempArr = new ArrayList<>();
@@ -311,21 +308,15 @@ public class Server {
                                                         while (z < messageHistory.size()) {
                                                             if (messageHistory.get(z).getSender().equals(user.getUsername())) {      // checks if message is sent by the main user
                                                                 userIsSender.add(messageHistory.get(z));
-                                                                //System.out.printf("[%d] " + messageHistory.get(z)
-                                                                // .toString(), i + 1);      // if message is sent by the main user, the number
-                                                                // will appear next to it
                                                                 i++;
                                                             } else {
                                                             }
-                                                            //System.out.print(messageHistory.get(z).toString());
                                                             // if main user is receiver, then message is printed as usual with any number next to it
                                                             z++;
                                                         }
-                                                        // System.out.println("Choose message to edit");
                                                         if (i > 0) {
                                                             choice = reader.read();     // user chooses
                                                             // which message to edit by typing in the number
-                                                            //System.out.println("To which message you want to change it?");
                                                             String msg = reader.readLine();
                                                             Message temp = userIsSender.get(choice - 1);
                                                             for (Message message : messageHistory) {
@@ -352,10 +343,8 @@ public class Server {
                                                         while (i < messageHistory.size()) {
                                                             userIsSender.add(messageHistory.get(i));       //
                                                             // userIsSender is basically all messages
-//                                                        System.out.printf("[%d] " + messageHistory.get(i).toString(), i + 1);
                                                             i++;
                                                         }
-                                                        //System.out.println("Choose message to delete");
                                                         if (i > 0) {
                                                             choice = reader.read();
                                                             Message temp = userIsSender.get(choice - 1);
@@ -385,8 +374,6 @@ public class Server {
                                                             pw.println();
                                                             pw.flush();
                                                         }
-//                                                    System.out.println("Your message history was successfully saved to " + fileName);
-//                                                    System.out.println();
                                                     }
                                                     // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
                                                     // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
@@ -481,20 +468,13 @@ public class Server {
                                                0) Exit, it returns you back to the userList of all users you had conversations before
                                                -1) If you want to export your current message history, all you need is to enter -1 and write name of the csv file you want to save your changes to
                                             */
-//                                            System.out.println("[1] Write message                         [2] Edit message");
-//                                            System.out.println("[3] Delete message                        [0] Exit");
-//                                            System.out.println("[-1] Export this message history to csv file");
-
                                                 int optionChoice = reader.read();            // enters which
                                                 // option you want to do
                                                 if (optionChoice == 0) {            // writing new messages
-                                                    //System.out.println("You want to send a message or upload a txt " +
-                                                    //      "file?\n[1] Send message\n[2] Upload file");    // you are
-                                                    // presented with two options as described before
+                                                    // you are presented with two options as described before
                                                     // 1 - regular message          2 - upload a txt file
                                                     int fileOrText = reader.read();
                                                     if (fileOrText == 0) {       // regular message
-                                                        //System.out.println("Enter message: ");
                                                         String mes = reader.readLine();
                                                         user.updateMessages();
                                                         ArrayList<Message> temp = user.getMessages();
@@ -502,7 +482,6 @@ public class Server {
                                                         user.updateMessages();
                                                         user.setMessages(temp);        // updates the messages field of the user to the renewed messageHistory
                                                     } else if (fileOrText == 1) {      //uploading files
-                                                        //System.out.println("Enter name of txt file: ");
                                                         String fileName = reader.readLine();         // enters name of the file
                                                         String mes;
                                                         try {
@@ -540,18 +519,15 @@ public class Server {
                                                     while (z < messageHistory.size()) {
                                                         if (messageHistory.get(z).getSender().equals(user.getUsername())) {      // checks if message is sent by the main user
                                                             userIsSender.add(messageHistory.get(z));
-                                                            System.out.printf("[%d] " + messageHistory.get(z).toString(), i + 1);      // if message is sent by the main user, the number
-                                                            // will appear next to it
+                                                            // if message is sent by the main user, the number will appear next to it
                                                             i++;
-                                                        } else
-                                                            System.out.print(messageHistory.get(z).toString());     // if main user is receiver, then message is printed as usual with any number next to it
+                                                        }
                                                         z++;
                                                     }
                                                     if (i > 0) {
                                                         choice = reader.read();           // user chooses which
                                                         // message
                                                         // available for him to edit he wants to edit
-                                                        //System.out.println("To which message you want to change it?");
                                                         String msg = reader.readLine();                   // user enters the message
                                                         // to
                                                         // which user wants to change his message
@@ -574,11 +550,10 @@ public class Server {
                                                     int i = 0;
                                                     while (i < messageHistory.size()) {
                                                         userIsSender.add(messageHistory.get(i));              // adding every message into the userIsSender arraylist
-                                                        //System.out.printf("[%d] " + messageHistory.get(i).toString(),i + 1);             // printing every message with a number next to it
+                                                        // printing every message with a number next to it
                                                         i++;
                                                     }
                                                     if (i > 0) {
-                                                        //System.out.println("Choose message to delete");
                                                         choice = reader.read();      // user chooses which
                                                         // message to delete
                                                         Message temp = userIsSender.get(choice - 1);        // we assign the message user chose to Message temp variable
@@ -600,7 +575,6 @@ public class Server {
                                                         user.updateMessages();
                                                     }
                                                 } else if (optionChoice == 3) {            // exporting messages
-//                                                System.out.println("Enter name of the file to which you want to export your message history");
                                                     String fileName = reader.readLine();            // enters the file name
                                                     PrintWriter pw = new PrintWriter(new FileOutputStream(fileName, false));
                                                     for (Message msg : messageHistory) {
@@ -625,7 +599,6 @@ public class Server {
                                     if (alphabetical == 0) {
                                         if (user instanceof Buyer) {
                                             String stats = ((Buyer) user).viewStatistics(true);
-                                            System.out.println(stats);
                                             writer.write(stats);
                                             writer.println();
                                             writer.flush();
@@ -656,7 +629,6 @@ public class Server {
                                     } else if (alphabetical == 1) {
                                         if (user instanceof Buyer) {
                                             String stats = ((Buyer) user).viewStatistics(false);
-                                            System.out.println(stats);
                                             writer.write(stats);
                                             writer.println();
                                             writer.flush();

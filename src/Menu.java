@@ -93,7 +93,6 @@ public class Menu {
                                 pwServer.write(email);
                                 pwServer.println();
                                 pwServer.flush();
-                                System.out.printf("Sent to server:\n%s\n", email);
                             }
                         } while (email.isEmpty());
 
@@ -110,7 +109,6 @@ public class Menu {
                                 pwServer.write(userName);
                                 pwServer.println();
                                 pwServer.flush();
-                                System.out.printf("Sent to server:\n%s\n", userName);
                             }
                         } while (userName.isEmpty());
 
@@ -125,7 +123,6 @@ public class Menu {
                                 pwServer.write(pass);
                                 pwServer.println();
                                 pwServer.flush();
-                                System.out.printf("Sent to server:\n%s\n", pass);
                             }
                         } while (pass.isEmpty());
 
@@ -948,7 +945,6 @@ public class Menu {
                                                 pwServer.flush();
 
                                                 newAccountInfo = bfrServer.readLine();
-                                                System.out.println(newAccountInfo);
                                                 if (newAccountInfo.isEmpty()) {
                                                     JOptionPane.showMessageDialog(null, "That email was not valid\n " +
                                                                     "(Email didn't contain an @ and . or email was " +
@@ -1016,7 +1012,6 @@ public class Menu {
                                             String blockUsername = (String) JOptionPane.showInputDialog(null, "Enter name" +
                                                     " of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null,
                                                     userArr, userArr[0]);
-                                            System.out.println(blockUsername);
                                             pwServer.write(blockUsername);
                                             pwServer.println();
                                             pwServer.flush();

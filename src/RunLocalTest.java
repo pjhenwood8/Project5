@@ -129,7 +129,7 @@ public class RunLocalTest {
             ArrayList<Message> mList = new ArrayList<>();
             mList.add(new Message(155, "13-11-2022 01:18:33", "mann", "alik",
                     "Hey man where is my money", false, false));
-            assertEquals(mList.toString(), Menu.parseMessageHistory(user1, "alik").toString());
+            assertEquals(mList.toString(), Server.parseMessageHistory(user1, "alik").toString());
         }
 
         @Test(timeout = 1000)
