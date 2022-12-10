@@ -634,7 +634,7 @@ public class Menu {
                                                 int optionChoice;
                                                 while (true) {
                                                     optionChoice = JOptionPane.showOptionDialog(null,
-                                                            messageHist.toString() + "\nSelect an option to proceed",
+                                                            messageHist + "\nSelect an option to proceed",
                                                             title, JOptionPane.YES_NO_OPTION,
                                                             JOptionPane.QUESTION_MESSAGE, null, options, options[4]);
 
@@ -786,14 +786,12 @@ public class Menu {
                                                 } else if (optionChoice == 2) {                 // if user chooses
                                                     // to delete the message (more detailed comments on the line 258)
                                                     messageHistory = (ArrayList<Message>) ois.readObject();
-                                                    ArrayList<Message> userIsSender = new ArrayList<>();
                                                     int i = 0;
                                                     messageHist = new StringBuilder(String.format("Message " +
                                                                     "History: %s - " +
                                                                     "%s%n----------------------------------------%n",
                                                             currUser.getUsername(), listOfUsers[receiveUser - 1]));
                                                     while (i < messageHistory.size()) {
-                                                        userIsSender.add(messageHistory.get(i));              // adding every message into the userIsSender arraylist
                                                         // printing every message with a number next to it
                                                         messageHist.append(String.format("[%d] " + messageHistory.get(i).toString(), i + 1));
                                                         i++;

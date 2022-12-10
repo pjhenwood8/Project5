@@ -6,6 +6,7 @@ import java.util.*;
 
 public class Server {
 
+    @SuppressWarnings("InfiniteLoopStatement")
     public static void main(String[] args){
         ServerSocket server = null;
 
@@ -40,18 +41,20 @@ public class Server {
         }
 
         public void run() {
-            PrintWriter out = null;
-            BufferedReader in = null;
+            BufferedReader reader = null;
+            PrintWriter writer = null;
+            ObjectInputStream ois = null;
+            ObjectOutputStream oos = null;
             try {
                 ArrayList<User> allUsers = readUsers("login.csv");
                 ArrayList<Store> allStores = readStores("stores.csv", allUsers);
                 addBlockedUsers(allUsers);
 
                 try {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                    PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
-                    ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
-                    ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
+                    reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                    writer = new PrintWriter(clientSocket.getOutputStream());
+                    ois = new ObjectInputStream(clientSocket.getInputStream());
+                    oos = new ObjectOutputStream(clientSocket.getOutputStream());
                     boolean online = true;
                     while (online) {
                         User user = null;
@@ -144,6 +147,7 @@ public class Server {
                                                 for (Store tempStore : ((Seller) tempUser).getNewStores()) {
                                                     if (tempStore.getStoreName().equals(storeNameToMessage)) {
                                                         sellerToMessage = tempUser;
+                                                        break;
                                                     }
                                                 }
                                           
@@ -205,14 +209,6 @@ public class Server {
                                                 oos.flush();
 
                                                 String sellerToWrite = reader.readLine();      // we ask him to write one
-                                                // seller name
-                                                User seller = null;
-                                                for (User value : allUsers) {
-                                                    if (value.getUsername().equals(sellerToWrite)) {
-                                                        seller = value;
-                                                        break;
-                                                    }
-                                                }
 
                                                 boolean alreadyMessaged = false;
 
@@ -304,7 +300,7 @@ public class Server {
                                                             } else if (fileOrText == 1) {
                                                                 // if user sends txt file as a message
                                                                 String fileName = reader.readLine();
-                                                                String mes = "";
+                                                                String mes;
                                                                 ArrayList<String> tempArr = new ArrayList<>();
                                                                 try {
                                                                     BufferedReader bfr = new BufferedReader(new FileReader(fileName));
@@ -343,7 +339,6 @@ public class Server {
                                                             if (messageHistory.get(z).getSender().equals(user.getUsername())) {      // checks if message is sent by the main user
                                                                 userIsSender.add(messageHistory.get(z));
                                                                 i++;
-                                                            } else {
                                                             }
                                                             // if main user is receiver, then message is printed as usual with any number next to it
                                                             z++;
@@ -830,6 +825,7 @@ public class Server {
                                                     for (User u : allUsers) {
                                                         if (u.getEmail().equals(newAccountInfo)) {
                                                             repeat = true;
+                                                            break;
                                                         }
                                                     }
                                                     if (newAccountInfo == null) {
@@ -837,9 +833,9 @@ public class Server {
                                                     } else if (newAccountInfo.contains("@") && newAccountInfo.contains(".") && !repeat) {
                                                         user.setEmail(newAccountInfo); // if new email is valid changes
                                                         // current user's email to new email
-                                                        for (User u : allUsers) {
-                                                            if (user.getUsername().equals(u.getUsername())) {
-                                                                u = user;
+                                                        for (int i = 0; i < allUsers.size(); i++) {
+                                                            if (allUsers.get(i).getUsername().equals(user.getUsername())) {
+                                                                allUsers.set(i, user);
                                                             }
                                                         }
                                                         writeUsers("login.csv", allUsers);
@@ -861,9 +857,9 @@ public class Server {
                                                 if (newAccountInfo != null) {
                                                     // changes user's password to new password
                                                     user.setPassword(newAccountInfo);
-                                                    for (User u : allUsers) {
-                                                        if (user.getUsername().equals(u.getUsername())) {
-                                                            u = user;
+                                                    for (int i = 0; i < allUsers.size(); i++) {
+                                                        if (allUsers.get(i).getUsername().equals(user.getUsername())) {
+                                                            allUsers.set(i, user);
                                                         }
                                                     }
                                                     writeUsers("login.csv", allUsers);
@@ -880,9 +876,9 @@ public class Server {
                                         choice = reader.read();
                                         if (choice == 0) {
                                             // user selects Y, their account is deleted (Their messages to other users will remain)
-                                            for (User u : allUsers) {
-                                                if (user.getUsername().equals(u.getUsername())) {
-                                                    u = user;
+                                            for (int i = 0; i < allUsers.size(); i++) {
+                                                if (allUsers.get(i).getUsername().equals(user.getUsername())) {
+                                                    allUsers.set(i, user);
                                                 }
                                             }
                                             user.removeUser();
@@ -918,9 +914,9 @@ public class Server {
                                                     writer.write("yes");
                                                     writer.println();
                                                     writer.flush();
-                                                    for (User u : allUsers) {
-                                                        if (user.getUsername().equals(u.getUsername())) {
-                                                            u = user;
+                                                    for (int i = 0; i < allUsers.size(); i++) {
+                                                        if (allUsers.get(i).getUsername().equals(user.getUsername())) {
+                                                            allUsers.set(i, user);
                                                         }
                                                     }
                                                     writeUsers("login.csv", allUsers);
@@ -945,9 +941,9 @@ public class Server {
                                                         writer.write("yes");
                                                         writer.println();
                                                         writer.flush();
-                                                        for (User u : allUsers) {
-                                                            if (user.getUsername().equals(u.getUsername())) {
-                                                                u = user;
+                                                        for (int i = 0; i < allUsers.size(); i++) {
+                                                            if (allUsers.get(i).getUsername().equals(user.getUsername())) {
+                                                                allUsers.set(i, user);
                                                             }
                                                         }
                                                         writeUsers("login.csv", allUsers);
@@ -962,9 +958,9 @@ public class Server {
                                             default:
                                                 break;
                                         }
-                                        for (User u : allUsers) {
-                                            if (user.getUsername().equals(u.getUsername())) {
-                                                u = user;
+                                        for (int i = 0; i < allUsers.size(); i++) {
+                                            if (allUsers.get(i).getUsername().equals(user.getUsername())) {
+                                                allUsers.set(i, user);
                                             }
                                         }
                                         writeUsers("login.csv", allUsers); // writes changes to login.csv file
@@ -982,9 +978,9 @@ public class Server {
                                         ((Seller) user).createStore(storeName); // adds new store
                                         allStores.add(new Store(storeName, 0));
                                         writeStores("stores.csv", allStores); // updates stores.csv
-                                        for (User u : allUsers) {
-                                            if (user.getUsername().equals(u.getUsername())) {
-                                                u = user;
+                                        for (int i = 0; i < allUsers.size(); i++) {
+                                            if (allUsers.get(i).getUsername().equals(user.getUsername())) {
+                                                allUsers.set(i, user);
                                             }
                                         }
                                         writeUsers("login.csv", allUsers); // updates login.csv
@@ -1001,43 +997,21 @@ public class Server {
                     }
                 }
                 catch (Exception e) {
-                    int imHereToAvoidCheckStyle;
                     e.printStackTrace();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
                 try {
-                    if (out != null) {
-                        out.close();
-                    }
-                    if (in != null) {
-                        in.close();
-                        clientSocket.close();
-                    }
-                }
-                catch (IOException e) {
+                    writer.close();
+                    reader.close();
+                    ois.close();
+                    oos.close();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         }
-    }
-
-    public static ArrayList<Message> readWholeFile() throws IOException {
-        // this method is responsible for reading the messages.csv file, and converting the every line there to the
-        // Message object. Method return ArrayList of those Message objects
-        ArrayList<Message> fileContent = new ArrayList<>();
-        BufferedReader bfr = new BufferedReader(new FileReader("messages.csv"));
-        String st;
-        while ((st = bfr.readLine()) != null) {
-            ArrayList<String> temp = customSplitSpecific(st);
-            for (int i = 0; i < temp.size(); i++) {
-                temp.set(i, temp.get(i).substring(1, temp.get(i).length()-1));
-            }
-            // we use specific constructor in the Message.java to assign values to the Message object when reading from file
-            fileContent.add(new Message(Integer.parseInt(temp.get(0)),temp.get(1),temp.get(2),temp.get(3),temp.get(4),Boolean.parseBoolean(temp.get(5)),Boolean.parseBoolean(temp.get(6))));
-        }
-        return fileContent;
     }
 
     /* this is very useful method that is used to read singular lines in the files
@@ -1049,7 +1023,7 @@ public class Server {
     abc.get(2)     ->   I like apples, bananas, watermelon
     We couldn't use regular split() function, so we created this one to help us solve the problem
     */
-    private static ArrayList<String> customSplitSpecific(String s)
+    private synchronized static ArrayList<String> customSplitSpecific(String s)
     {
         ArrayList<String> words = new ArrayList<>();
         boolean notInsideComma = true;
@@ -1205,7 +1179,7 @@ public class Server {
         return stores;
     }
 
-    public static User login(String email, String password, ArrayList<User> users) {
+    public synchronized static User login(String email, String password, ArrayList<User> users) {
         for (User user : users) {
             if (user.getEmail().equals(email) && user.getPassword().equals(password)) {
                 return user;
@@ -1214,7 +1188,7 @@ public class Server {
         return null;
     }
 
-    public static User createAccount(String email, String username, String password,
+    public synchronized static User createAccount(String email, String username, String password,
                                      int type, ArrayList<User> users) throws LoginException {
         for (User user : users) {
             if (user.getEmail().equals(email)) {
@@ -1229,7 +1203,7 @@ public class Server {
             answer = new Seller(username, email, password);
             try {
                 PrintWriter pw = new PrintWriter(new FileOutputStream("login.csv", true));
-                pw.println(answer.toString());
+                pw.println(answer);
                 pw.close();
             }
             catch (Exception e) {
@@ -1240,7 +1214,7 @@ public class Server {
             answer = new Buyer(username, email, password);
             try {
                 PrintWriter pw = new PrintWriter(new FileOutputStream("login.csv", true));
-                pw.println(answer.toString());
+                pw.println(answer);
                 pw.close();
             }
             catch (Exception e) {
@@ -1307,7 +1281,7 @@ public class Server {
 
     //this method parses mainClient messages field, and selects only messages that has thirdParty's username in it.
     //this method allows us to view private message history with specific User, whose username is passed in as "thirdParty"
-    public static ArrayList<Message> parseMessageHistory(User mainClient, String thirdParty) {
+    public synchronized static ArrayList<Message> parseMessageHistory(User mainClient, String thirdParty) {
         ArrayList<Message> messages = mainClient.getMessages();
         ArrayList<Message> temp = new ArrayList<>();
         for (Message message : messages) {
@@ -1318,7 +1292,7 @@ public class Server {
         return temp;
     }
 
-    public static String[] parseUsers(User user) {
+    public synchronized static String[] parseUsers(User user) {
         ArrayList<Message> messages = user.getMessages();
         ArrayList<String> temp = new ArrayList<>();
         for (Message message : messages) {
@@ -1337,42 +1311,7 @@ public class Server {
         return answer;
     }
 
-    public static User createAccount(String username, String email, String password, String userType) {
-        ArrayList<ArrayList<String>> existingUsers = new ArrayList<>();
-        ArrayList<String> file = new ArrayList<>();
-        try {
-            BufferedReader bfr = new BufferedReader(new FileReader("login.csv"));
-            String line = bfr.readLine();
-            while (line != null) {
-                file.add(line);
-                existingUsers.add(customSplitSpecific(line));
-                line = bfr.readLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        for (ArrayList<String> users : existingUsers) {
-            if (users.get(0).equals(username)){
-                return null;
-            }
-            if (users.get(1).equals(email)){
-                return null;
-            }
-        }
-        try {
-            PrintWriter pw = new PrintWriter(new FileOutputStream("login.csv", false));
-            for (String strings : file) {
-                pw.println(strings);
-            }
-            pw.println("\"" + username + "\"" + "," + "\"" + email + "\"" + "," + "\"" + password + "\"" + "," + "\"" + userType + "\"" + ",\"\"");
-            pw.close();
-        } catch (IOException e ) {
-            e.printStackTrace();
-        }
-        return new User(username,email,password);
-    }
-
-    public static void addBlockedUsers(ArrayList<User> users) {
+    public synchronized static void addBlockedUsers(ArrayList<User> users) {
         for (User u : users) {
             ArrayList<String> blockedUsernames = u.getBlockedUsernames();
             for (String bUser : blockedUsernames) {

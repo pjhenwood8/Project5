@@ -207,4 +207,11 @@ public class User implements Serializable {
         return blockedUsers;
     }
 
+    public void setBlockedUsers(ArrayList<User> blockedUsers) {
+        this.blockedUsers = blockedUsers;
+    }
+
+    public void setBlockedUsernames(ArrayList<String> blockedUsernames) {
+        this.blockedUsernames = blockedUsernames;
+    }
 }
