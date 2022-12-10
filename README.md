@@ -24,9 +24,9 @@ and all the data for this program that will be sent to the client when needed. A
 done in the MultiClient class. Important thing about MultiClient is that it implements Runnable and have run() method
 in it, and it's created everytime new user connects to the socket.
 
-Server class is responsible for checking if user connected to the serverSocket and starting multiple Threads
-in case users are connecting to the serverSocket. Starting multiple Threads allows us to handle multiple clients
-at the same time and also updating stuff in real-time. It makes our project concurrent.
+Server class contains the main method and is responsible for checking if user connected to the serverSocket and 
+starting multiple Threads in case users are connecting to the serverSocket. Starting multiple Threads allows us to 
+handle multiple clients at the same time and also updating stuff in real-time. It makes our project concurrent.
 
 Message.java is file for managing messages from the messages.csv file. Message.java allows us to convert
 each line in the messages.csv into the Message object with specific field, using methods in Message.java.

@@ -520,7 +520,6 @@ public class Menu {
 
                                     User sellerObject = (User) ois.readObject();
                                     if (sellerObject != null) {
-                                        ArrayList<Message> temp = currUser.getMessages();
                                         // tells user who is owner of the store
                                         JOptionPane.showMessageDialog(null, "Store manager's username" +
                                                 " is " + sellerObject.getUsername() + "\nPlease wait for his " +
@@ -1093,7 +1092,6 @@ public class Menu {
             if (currUser != null) {
                 // user logs out
                 JOptionPane.showMessageDialog(null, "Successfully Logged out", "Marketplace Messaging", JOptionPane.INFORMATION_MESSAGE);
-                currUser = null;
             } else {
                 // user leaves program
                 JOptionPane.showMessageDialog(null, "Thank you for using the messaging service", "Marketplace Messaging", JOptionPane.INFORMATION_MESSAGE);
