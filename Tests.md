@@ -154,35 +154,207 @@ menu.
 
 Test Status: Passed
 
-Test 8:
+*The next seven tests should be run in sequence and 
+require the following two accounts*
+<br> Account 1
+<br> Email: user@purdue.edu
+<br> Username:  User
+<br> Password:  pass
+<br> User Type: Buyer
 <br>
+<br> Account 2
+<br> Email: friend@gmail.com
+<br> Username: Friend
+<br> Password: pass
+<br> User Type: Seller
+
+Test 8: Write message
 
 Steps:
+<br> Select Messages
+<br> Select Write to Seller
+<br> Select Start New Dialog
+<br> Select Friend from the dropdown menu
+<br> Write "Hello Friend" and select OK
+<br> Select Exit
 
-Expected Result:
+Expected Result: messages.csv was updated to include the Hello Friend
+message = and Friend should now be able to view that message as we
+will check in the next test
 
 Test Status: Passed
 
-Test 9:
+*The next test requires you to sign in as Friend*
+
+Test 9: Create Store and Message Received 
 
 Steps:
+<br> Log in as Friend
+<br> Select Account
+<br> Select Create New Store
+<br> Write "Shoe Store" and select OK
+<br> Select OK
+<br> Select Account
+<br> Select Create New Store
+<br> Write "Nike" and select OK
+<br> Select OK
+<br> Select Messages
+<br> Select User
+<br> Select Exit
 
-Expected Result:
+Expected Result: Should be able to see the message user sent and
+when they send it, and stores.csv should now contain shoe store
 
 Test Status: Passed
 
-Test 10:
+Test 10: Write Store
 
 Steps:
+<br> Select Messages
+<br> Select Write to Store
+<br> Select Shoe Store
+<br> Write "Friend I would like a shoe" and select OK
+<br> Select OK
+<br> Select Exit
 
-Expected Result:
+Expected Result: Messages.csv should be updated with the new message
+to Friend through the write Store Function
 
 Test Status: Passed
 
-Test #:
+Test 11: Most Common Words
 
 Steps:
+<br> Select Messages
+<br> Select Write to Seller
+<br> Select Friend
+<br> Select Write Message
+<br> Select Send Message
+<br> Write "Goodbye shoe Friend"
+<br> Select Exit
+<br> Select Exit
+<br> Select Statistics
+<br> Select Most Common Words
+<br> Select Exit
 
-Expected Result:
+Expected Result: The Most common word should be Friend said three 
+times, the next most common word should be "shoe" said twice, and
+then the third most common word should "Hello" said once.
+
+Test Status: Passed
+
+Test 12: Buyer Alphabetical
+
+Steps:
+<br> Select Statistics
+<br> Select Alphabetical
+<br> Select Exit
+
+Expected result: When alphabetical is clicked on the following 
+list should appear
+Store: Nike - Number of messages received: 0
+Store: shoe store - Number of messages received: 1
+
+Test Status: Passed
+
+Test 13: Buyer Reverse Alphabetical
+
+Steps:
+<br> Select Statistics
+<br> Select Reverse Alphabetical
+<br> Select Exit
+
+Expected result: When reverse alphabetical is clicked on the 
+following list should appear
+Store: shoe store - Number of messages received: 1
+Store: Nike - Number of messages received: 0
+
+Test Status: Passed
+
+*The next test requires you to create a new account and then log in
+as Friend*
+
+Test 14: Seller Alphabetical
+
+Steps:
+<br> Create a new Buyer called User2 with email user2@purdue.edu
+<br> Select Messages
+<br> Select Write to Seller
+<br> Write "Hi I am User 2" and Select OK
+<br> Exit and Log out
+<br> Log in as Friend
+<br> Select Statistics
+<br> Select Alphabetical
+<br> Select Exit
+
+Expected result: When alphabetical is clicked on the following 
+list should appear
+User sent 3 messages
+User2 sent 1 messages
+
+Test Status: Passed
+
+*The next test requires you to be logged in as Friend*
+
+Test 15: Seller Reverse Alphabetical
+
+Steps:
+<br> Select Statistics
+<br> Select Reverse Alphabetical
+<br> Select Exit
+
+Expected result: When reverse alphabetical is clicked on the 
+following list should appear
+User2 sent 1 messages
+User sent 3 messages
+
+Test Status: Passed
+
+Test 16: Delete Messages
+
+Steps:
+<br> Select Messages
+<br> Select Write to Seller
+<br> Select Friend
+<br> Select Delete Message
+<br> Select 1
+<br> Select Exit
+
+Expected Result: After selecting one you will return to the page 
+which logs your conversation with Friend and Message one "Hello Friend"
+should be deleted, and message.csv should also reflect this change
+
+Test Status: Passed
+
+Test 17: Edit Messages
+
+Steps:
+<br> Select Messages
+<br> Select Write to Seller
+<br> Select Friend
+<br> Select Edit Message
+<br> Select 2, which should correspond too "Goodbye shoe Friend"
+<br> Write "Goodbye Friend" and select OK
+<br> Select Exit
+
+Expected Result: After selecting OK you will return to the page
+which logs your conversation with Friend and Message two should
+now be "Goodbye Friend", and message.csv should also reflect this
+change
+
+Test Status: Passed
+
+Test 18: Export History to CSV
+
+Steps:
+<br> Select Messages
+<br> Select Write to Seller
+<br> Select Friend
+<br> Select Export History to CSV
+<br> Write "test.csv" and Select OK
+<br> Select Exit
+
+Expected Result: All messages should now be saved in the file 
+test.csv
 
 Test Status: Passed
