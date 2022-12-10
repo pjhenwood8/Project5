@@ -1,8 +1,8 @@
 # Project 5
-Project 5 for CS 180 
+Project 5 for CS 180  
 To run the project code, first run Server.java. Once the server is running users can 
 connect by running Menu.java. Users will be prompted with an input dialog for the port number.
-The Users will input 4242 to connect to the server and use the messaging system.
+The Users should input port number 4242 to connect to the server and use the messaging system.
 After connecting to server, the follow-ups and tips will be shown to user, 
 which will guide him on how to use the program.
 
