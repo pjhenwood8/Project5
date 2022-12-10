@@ -287,41 +287,47 @@ public class Menu {
                                             pwServer.write(optionChoice);
                                             pwServer.flush();
                                             if (optionChoice == 0) {            // writing new messages
+                                                int canMessage = bfrServer.read();
                                                 // you are presented with two options as described before
                                                 // 1 - regular message          2 - upload a txt file
-                                                options = new String[]{"Send Message", "Upload File"};
-                                                int fileOrText = JOptionPane.showOptionDialog(null, "Do you want " +
-                                                        "to send a message or upload a text file?", title,
-                                                        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
-                                                        null, options, options[0]);
-                                                pwServer.write(fileOrText);
-                                                pwServer.flush();
-                                                if (fileOrText == 0) {       // regular message
-                                                    String mes = JOptionPane.showInputDialog(null, "Write your message: ",
-                                                            title, JOptionPane.PLAIN_MESSAGE);
-                                                    pwServer.write(mes);
-                                                    pwServer.println();
+                                                if (canMessage == 2) {
+                                                    options = new String[]{"Send Message", "Upload File"};
+                                                    int fileOrText = JOptionPane.showOptionDialog(null, "Do you want " +
+                                                                    "to send a message or upload a text file?", title,
+                                                            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+                                                            null, options, options[0]);
+                                                    pwServer.write(fileOrText);
                                                     pwServer.flush();
-                                                    ArrayList<Message> temp = currUser.getMessages();
-                                                    temp.add(new Message(currUser.getUsername(), listOfUsers[receiveUser - 1], mes));
-                                                    currUser.setMessages(temp);        // updates the messages field of the user to the renewed messageHistory
-                                                } else if (fileOrText == 1) {      //uploading files
-                                                    String fileName = JOptionPane.showInputDialog(null, "Enter " +
-                                                                    "name of txt file: ", title, JOptionPane.PLAIN_MESSAGE);    // enters name of the file
-                                                    pwServer.write(fileName);
-                                                    pwServer.println();
-                                                    pwServer.flush();
-                                                                                                          // we read it as new line when writing all messages
-                                                    int error = bfrServer.read();
-                                                    if (error == 0) {
-                                                        String mes = bfrServer.readLine();
+                                                    if (fileOrText == 0) {       // regular message
+                                                        String mes = JOptionPane.showInputDialog(null, "Write your message: ",
+                                                                title, JOptionPane.PLAIN_MESSAGE);
+                                                        pwServer.write(mes);
+                                                        pwServer.println();
+                                                        pwServer.flush();
                                                         ArrayList<Message> temp = currUser.getMessages();
                                                         temp.add(new Message(currUser.getUsername(), listOfUsers[receiveUser - 1], mes));
-                                                        currUser.setMessages(temp);                  // updates the messages field of the user
-                                                    } else {
-                                                        JOptionPane.showMessageDialog(null, "That file doesn't exist"
-                                                                , title, JOptionPane.ERROR_MESSAGE);
+                                                        currUser.setMessages(temp);        // updates the messages field of the user to the renewed messageHistory
+                                                    } else if (fileOrText == 1) {      //uploading files
+                                                        String fileName = JOptionPane.showInputDialog(null, "Enter " +
+                                                                "name of txt file: ", title, JOptionPane.PLAIN_MESSAGE);    // enters name of the file
+                                                        pwServer.write(fileName);
+                                                        pwServer.println();
+                                                        pwServer.flush();
+                                                        // we read it as new line when writing all messages
+                                                        int error = bfrServer.read();
+                                                        if (error == 0) {
+                                                            String mes = bfrServer.readLine();
+                                                            ArrayList<Message> temp = currUser.getMessages();
+                                                            temp.add(new Message(currUser.getUsername(), listOfUsers[receiveUser - 1], mes));
+                                                            currUser.setMessages(temp);                  // updates the messages field of the user
+                                                        } else {
+                                                            JOptionPane.showMessageDialog(null, "That file doesn't exist"
+                                                                    , title, JOptionPane.ERROR_MESSAGE);
+                                                        }
                                                     }
+                                                } else {
+                                                    JOptionPane.showMessageDialog(null, "You can't write to this " +
+                                                            "user because they are blocked", title, JOptionPane.ERROR_MESSAGE, null);
                                                 }
                                             } else if (optionChoice == 1) {          // editing messages
                                                 messageHistory = (ArrayList<Message>) ois.readObject();
@@ -646,75 +652,74 @@ public class Menu {
 
 
                                                 if (optionChoice == 0) {                 //if user chooses to write a new message
-                                                    options = new String[]{"Send Message", "Upload File"};
-                                                    int fileOrText;
-                                                    while (true) {
-                                                        fileOrText = JOptionPane.showOptionDialog(null, "Do you want " +
-                                                                        "to send a message or upload a text file?", title,
-                                                                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
-                                                                null, options, options[0]);
-                                                        if (fileOrText == -1) {
-                                                            JOptionPane.showMessageDialog(null, "Enter correct choice");
+                                                    int canMessage = bfrServer.read();
+                                                    if (canMessage == 2) {
+                                                        options = new String[]{"Send Message", "Upload File"};
+                                                        int fileOrText;
+                                                        while (true) {
+                                                            fileOrText = JOptionPane.showOptionDialog(null, "Do you want " +
+                                                                            "to send a message or upload a text file?", title,
+                                                                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+                                                                    null, options, options[0]);
+                                                            if (fileOrText == -1) {
+                                                                JOptionPane.showMessageDialog(null, "Enter correct choice");
+                                                            } else {
+                                                                pwServer.write(fileOrText);
+                                                                pwServer.flush();
+                                                                break;
+                                                            }
                                                         }
-                                                        else {
-                                                            pwServer.write(fileOrText);
-                                                            pwServer.flush();
-                                                            break;
-                                                        }
-                                                    }
 
-                                                    if (fileOrText == 0) {              // if user sends regular message
-                                                        while (true) {
-                                                            String mes = JOptionPane.showInputDialog(null, "Write your message: ",
-                                                                    title, JOptionPane.PLAIN_MESSAGE);
-                                                            if (mes == null) {
-                                                                JOptionPane.showMessageDialog(null, "Please write a " +
-                                                                                "message", title, JOptionPane.ERROR_MESSAGE);
+                                                        if (fileOrText == 0) {              // if user sends regular message
+                                                            while (true) {
+                                                                String mes = JOptionPane.showInputDialog(null, "Write your message: ",
+                                                                        title, JOptionPane.PLAIN_MESSAGE);
+                                                                if (mes == null) {
+                                                                    JOptionPane.showMessageDialog(null, "Please write a " +
+                                                                            "message", title, JOptionPane.ERROR_MESSAGE);
+                                                                } else if (mes.equals("")) {
+                                                                    JOptionPane.showMessageDialog(null, "Message cannot " +
+                                                                            "be an empty string", title, JOptionPane.ERROR_MESSAGE);
+                                                                } else {
+                                                                    pwServer.write(mes);
+                                                                    pwServer.println();
+                                                                    pwServer.flush();
+                                                                    break;
+                                                                }
                                                             }
-                                                            else if (mes.equals("")) {
-                                                                JOptionPane.showMessageDialog(null, "Message cannot " +
-                                                                                "be an empty string", title, JOptionPane.ERROR_MESSAGE);
+                                                        } else if (fileOrText == 1) {            // if user sends txt file
+                                                            // as a message
+                                                            String fileName;
+                                                            while (true) {
+                                                                fileName = JOptionPane.showInputDialog(null, "Enter " +
+                                                                        "name of txt file: ", title, JOptionPane.PLAIN_MESSAGE);    // enters name of the file
+                                                                if (fileName == null) {
+                                                                    JOptionPane.showMessageDialog(null, "Please write a " +
+                                                                            "filename", title, JOptionPane.ERROR_MESSAGE);
+                                                                } else if (fileName.equals("")) {
+                                                                    JOptionPane.showMessageDialog(null, "Message cannot " +
+                                                                            "be an empty string", title, JOptionPane.ERROR_MESSAGE);
+                                                                } else {
+                                                                    pwServer.write(fileName);
+                                                                    pwServer.println();
+                                                                    pwServer.flush();
+                                                                    break;
+                                                                }
                                                             }
-                                                            else {
-                                                                pwServer.write(mes);
-                                                                pwServer.println();
-                                                                pwServer.flush();
-                                                                break;
+                                                            String reportFromServer = bfrServer.readLine();
+                                                            if (reportFromServer.equals("Success")) {
+                                                                JOptionPane.showMessageDialog(null, "Your message was" +
+                                                                                " successfully written from the given file",
+                                                                        title, JOptionPane.INFORMATION_MESSAGE);
+                                                            } else {
+                                                                JOptionPane.showMessageDialog(null, "File provided " +
+                                                                                "from you does not EXIST",
+                                                                        title, JOptionPane.ERROR_MESSAGE);
                                                             }
                                                         }
-                                                    }
-                                                    else if (fileOrText == 1) {            // if user sends txt file
-                                                        // as a message
-                                                        String fileName;
-                                                        while (true) {
-                                                            fileName = JOptionPane.showInputDialog(null, "Enter " +
-                                                                    "name of txt file: ", title, JOptionPane.PLAIN_MESSAGE);    // enters name of the file
-                                                            if (fileName == null) {
-                                                                JOptionPane.showMessageDialog(null, "Please write a " +
-                                                                        "filename", title, JOptionPane.ERROR_MESSAGE);
-                                                            }
-                                                            else if (fileName.equals("")) {
-                                                                JOptionPane.showMessageDialog(null, "Message cannot " +
-                                                                        "be an empty string", title, JOptionPane.ERROR_MESSAGE);
-                                                            }
-                                                            else {
-                                                                pwServer.write(fileName);
-                                                                pwServer.println();
-                                                                pwServer.flush();
-                                                                break;
-                                                            }
-                                                        }
-                                                        String reportFromServer = bfrServer.readLine();
-                                                        if (reportFromServer.equals("Success")) {
-                                                            JOptionPane.showMessageDialog(null, "Your message was" +
-                                                                            " successfully written from the given file",
-                                                                    title, JOptionPane.INFORMATION_MESSAGE);
-                                                        }
-                                                        else {
-                                                            JOptionPane.showMessageDialog(null, "File provided " +
-                                                                            "from you does not EXIST",
-                                                                    title, JOptionPane.ERROR_MESSAGE);
-                                                        }
+                                                    } else {
+                                                        JOptionPane.showMessageDialog(null, "You can't write to this " +
+                                                                "user because they are blocked", title, JOptionPane.ERROR_MESSAGE, null);
                                                     }
                                                 } else if (optionChoice == 1) {              //
                                                     // if user chooses to edit messages (for more detailed comments refer to line 210)
