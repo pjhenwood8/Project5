@@ -1,6 +1,6 @@
 # Project 5
 Project 5 for CS 180 
-To run the project code, first run Server.java. Once the sever is running users can 
+To run the project code, first run Server.java. Once the server is running users can 
 connect by running Menu.java. Users will be prompted with an input dialog for the port number.
 The Users will input 4242 to connect to the server and use the messaging system.
 After connecting to server, the follow-ups and tips will be shown to user, 
@@ -14,10 +14,19 @@ Menu.java is the client class of the project. This class contains the GUI that t
 in order to progress through the menus. At the beginning, the user will be able to log in with existing account, create
 a new account, or exit. Once logged in, the user will be able to write messages, edit them, and delete them.
 Furthermore, users will also be able to view statistics of those messages, change the password and email of 
-the account, delete their account, and block users from messaging them.
+the account, delete their account, and block users from messaging them. In short, Menu.java is used as an
+interactive shell for the project that will collect information from the client and send it to the server.
 
-Server.java is the server for the project. This class contains the methods that read and write to the csv files 
-and all the data for this program that will be sent to the client when needed.
+We have 2 classes in Server.java file which are Server class and MultiClient class.
+
+MultiClient class is the server for the project. This class contains the methods that read and write to the csv files 
+and all the data for this program that will be sent to the client when needed. All calculations are basically 
+done in the MultiClient class. Important thing about MultiClient is that it implements Runnable and have run() method
+in it, and it's created everytime new user connects to the socket.
+
+Server class is responsible for checking if user connected to the serverSocket and starting multiple Threads
+in case users are connecting to the serverSocket. Starting multiple Threads allows us to handle multiple clients
+at the same time and also updating stuff in real-time. It makes our project concurrent.
 
 Message.java is file for managing messages from the messages.csv file. Message.java allows us to convert
 each line in the messages.csv into the Message object with specific field, using methods in Message.java.
@@ -38,3 +47,6 @@ store is getting the highest amount of messages.
 
 Store.java is a class that helps to keep track of statistics, specifically amount of messages that 
 store receives. With that class it's much easier to construct statistics for the Seller class.
+
+LoginException.java is thrown whenever there is an issue when creating new account. It's thrown if email or
+username is already in use. 
