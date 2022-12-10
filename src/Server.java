@@ -127,6 +127,8 @@ public class Server {
                             if (choice == 0) {       // MESSAGES / STATISTICS / ACCOUNT / EXIT
                                 user.updateMessages();
                                 if (user instanceof Buyer) {
+                                    allUsers = readUsers("login.csv");
+                                    addBlockedUsers(allUsers);
                                     ArrayList<Message> messageHistory = null;
                                     choice = reader.read();
 
@@ -144,6 +146,7 @@ public class Server {
                                                         sellerToMessage = tempUser;
                                                     }
                                                 }
+                                          
                                             }
                                         }
 
@@ -222,12 +225,22 @@ public class Server {
                                                 }
                                                 // same logic as it was in the line 123, read comments there
                                                 boolean flag2 = true;
-                                                if (user.getBlockedUsers().contains(seller) || seller.getBlockedUsers().contains(user)) {
-                                                    flag2 = false;
-                                                    writer.write(1);
-                                                    writer.flush();
+                                                for (User value : allUsers) {
+                                                    for (User u : user.getBlockedUsers()) {
+                                                        if (u.getUsername().equals(value.getUsername())) {
+                                                            writer.write(1);
+                                                            writer.flush();
+                                                            flag2 = false;
+                                                        }
+                                                    }
+                                                    for (User u : value.getBlockedUsers()) {
+                                                        if (u.getUsername().equals(user.getUsername())) {
+                                                            writer.write(1);
+                                                            writer.flush();
+                                                            flag2 = false;
+                                                        }
+                                                    }
                                                 }
-
 
                                                 if (flag2 && !alreadyMessaged) {
                                                     writer.write(2);
@@ -256,44 +269,65 @@ public class Server {
                                                     // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
                                                     // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
                                                     if (optionChoice == 0) {
+                                                        boolean flag2 = true;
+                                                        for (User value : allUsers) {
+                                                            for (User u : user.getBlockedUsers()) {
+                                                                if (u.getUsername().equals(value.getUsername())) {
+                                                                    writer.write(1);
+                                                                    writer.flush();
+                                                                    flag2 = false;
+                                                                }
+                                                            }
+                                                            for (User u : value.getBlockedUsers()) {
+                                                                if (u.getUsername().equals(user.getUsername())) {
+                                                                    writer.write(1);
+                                                                    writer.flush();
+                                                                    flag2 = false;
+                                                                }
+                                                            }
+                                                        }
                                                         //if user chooses to write a new message file?
                                                         // [1] Send message\n[2] Upload file");
-                                                        choice = reader.read();
-                                                        int fileOrText = choice;
-                                                        // 1-SEND MESSAGE   /   2-UPLOAD FILE
-                                                        if (fileOrText == 0) {              // if user sends regular message
-                                                            String mes = reader.readLine();
-                                                            user.updateMessages();
-                                                            ArrayList<Message> temp = user.getMessages();
-                                                            temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
-                                                            user.setMessages(temp);
+                                                        if (flag2) {
+                                                            writer.write(2);
+                                                            writer.flush();
+                                                            choice = reader.read();
+                                                            int fileOrText = choice;
                                                             // 1-SEND MESSAGE   /   2-UPLOAD FILE
-                                                        } else if (fileOrText == 1) {
-                                                            // if user sends txt file as a message
-                                                            String fileName = reader.readLine();
-                                                            String mes = "";
-                                                            ArrayList<String> tempArr = new ArrayList<>();
-                                                            try {
-                                                                BufferedReader bfr = new BufferedReader(new FileReader(fileName));
-                                                                String st;
-                                                                while ((st = bfr.readLine()) != null) {
-                                                                    tempArr.add(st);
-                                                                }
-                                                                mes = String.join("\\n", tempArr);
+                                                            if (fileOrText == 0) {              // if user sends regular message
+                                                                String mes = reader.readLine();
                                                                 user.updateMessages();
                                                                 ArrayList<Message> temp = user.getMessages();
                                                                 temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
                                                                 user.setMessages(temp);
-                                                                writer.write("Success");
-                                                                writer.println();
-                                                                writer.flush();
-                                                            } catch (FileNotFoundException e) {
-                                                                writer.write("I'm sorry but that file does not exist");
-                                                                writer.println();
-                                                                writer.flush();
+                                                                // 1-SEND MESSAGE   /   2-UPLOAD FILE
+                                                            } else if (fileOrText == 1) {
+                                                                // if user sends txt file as a message
+                                                                String fileName = reader.readLine();
+                                                                String mes = "";
+                                                                ArrayList<String> tempArr = new ArrayList<>();
+                                                                try {
+                                                                    BufferedReader bfr = new BufferedReader(new FileReader(fileName));
+                                                                    String st;
+                                                                    while ((st = bfr.readLine()) != null) {
+                                                                        tempArr.add(st);
+                                                                    }
+                                                                    mes = String.join("\\n", tempArr);
+                                                                    user.updateMessages();
+                                                                    ArrayList<Message> temp = user.getMessages();
+                                                                    temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
+                                                                    user.setMessages(temp);
+                                                                    writer.write("Success");
+                                                                    writer.println();
+                                                                    writer.flush();
+                                                                } catch (FileNotFoundException e) {
+                                                                    writer.write("I'm sorry but that file does not exist");
+                                                                    writer.println();
+                                                                    writer.flush();
+                                                                }
                                                             }
+                                                            saveMessages(user);
                                                         }
-                                                        saveMessages(user);
                                                     }
                                                     // 1-WRITE MESSAGE / 2-EDIT MESSAGE / 3-DELETE MESSAGE / 0-EXIT
                                                     // -1  IS EXPORT MESSAGE HISTORY TO CSV FILE
@@ -400,14 +434,15 @@ public class Server {
                                         String[] listOfUsers = parseUsers(user);
                                         oos.writeObject(listOfUsers);
                                         oos.flush();
-
+                                        allUsers = readUsers("login.csv");
+                                        addBlockedUsers(allUsers);
                                         choice = reader.read();
 
                                         int receiveUser = choice;          // He makes the choice
                                         if (receiveUser == -1) {
                                             break;                                          // If user chooses to exit, we break the infinite loop, and user is able to choose statistics or account settings
-                                        }
-                                        if (receiveUser == 0) {                                          // dialog with new user
+                                        } else if (receiveUser == 0) {
+                                            // dialog with new user
                                             String newUser = reader.readLine();         // Enter name of the new user
                                             boolean alreadyMessaged = false;
                                             for (String u : listOfUsers) {
@@ -420,10 +455,19 @@ public class Server {
                                             boolean flag2 = true;          // This flag is responsible for checking if user to which you are texting blocked you, or you blocked that user before
                                             for (User value : allUsers) {
                                                 if (value.getUsername().equals(newUser)) {
-                                                    if (user.getBlockedUsers().contains(value) || value.getBlockedUsers().contains(user)) {
-                                                        writer.write(1);
-                                                        writer.flush();
-                                                        flag2 = false;      // flag2 = false; means that neither of you blocked each other
+                                                    for (User u : user.getBlockedUsers()) {
+                                                        if (u.getUsername().equals(value.getUsername())) {
+                                                            writer.write(1);
+                                                            writer.flush();
+                                                            flag2 = false;
+                                                        }
+                                                    }
+                                                    for (User u : value.getBlockedUsers()) {
+                                                        if (u.getUsername().equals(user.getUsername())) {
+                                                            writer.write(1);
+                                                            writer.flush();
+                                                            flag2 = false;
+                                                        }
                                                     }
                                                 }
                                             }
@@ -471,44 +515,66 @@ public class Server {
                                                 int optionChoice = reader.read();            // enters which
                                                 // option you want to do
                                                 if (optionChoice == 0) {            // writing new messages
-                                                    // you are presented with two options as described before
-                                                    // 1 - regular message          2 - upload a txt file
-                                                    int fileOrText = reader.read();
-                                                    if (fileOrText == 0) {       // regular message
-                                                        String mes = reader.readLine();
-                                                        user.updateMessages();
-                                                        ArrayList<Message> temp = user.getMessages();
-                                                        temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
-                                                        user.updateMessages();
-                                                        user.setMessages(temp);        // updates the messages field of the user to the renewed messageHistory
-                                                    } else if (fileOrText == 1) {      //uploading files
-                                                        String fileName = reader.readLine();         // enters name of the file
-                                                        String mes;
-                                                        try {
-                                                            ArrayList<String> tempArr = new ArrayList<>();
-                                                            BufferedReader bfr = new BufferedReader(new FileReader(fileName));
-                                                            String st;
-                                                            while ((st = bfr.readLine()) != null) {
-                                                                tempArr.add(st);                     // reads whole file and saves lines to ArrayList
+                                                    boolean flag2 = true;
+                                                    for (User value : allUsers) {
+                                                        for (User u : user.getBlockedUsers()) {
+                                                            if (u.getUsername().equals(value.getUsername())) {
+                                                                writer.write(1);
+                                                                writer.flush();
+                                                                flag2 = false;
                                                             }
-                                                            mes = String.join("\\n", tempArr);              // combine all lines in the file by \\n which shows up as \n in the messages.csv file
-                                                            // we read it as new line when writing all messages
+                                                        }
+                                                        for (User u : value.getBlockedUsers()) {
+                                                            if (u.getUsername().equals(user.getUsername())) {
+                                                                writer.write(1);
+                                                                writer.flush();
+                                                                flag2 = false;
+                                                            }
+                                                        }
+                                                    }
+                                                    if (flag2) {
+                                                        writer.write(2);
+                                                        writer.flush();
+                                                        // you are presented with two options as described before
+                                                        // 1 - regular message          2 - upload a txt file
+                                                        int fileOrText = reader.read();
+                                                        if (fileOrText == 0) {       // regular message
+                                                            String mes = reader.readLine();
                                                             user.updateMessages();
                                                             ArrayList<Message> temp = user.getMessages();
                                                             temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
-                                                            user.setMessages(temp);                  // updates the messages field of the user
-                                                            writer.write(0);
-                                                            writer.flush();
-                                                            writer.write(mes);
-                                                            writer.println();
-                                                            writer.flush();
+                                                            user.updateMessages();
+                                                            user.setMessages(temp);        // updates the messages field of the user to the renewed messageHistory
+                                                        } else if (fileOrText == 1) {      //uploading files
+                                                            String fileName = reader.readLine();         // enters name of the file
+                                                            String mes;
+                                                            try {
+                                                                ArrayList<String> tempArr = new ArrayList<>();
+                                                                BufferedReader bfr = new BufferedReader(new FileReader(fileName));
+                                                                String st;
+                                                                while ((st = bfr.readLine()) != null) {
+                                                                    tempArr.add(st);                     // reads whole file and saves lines to ArrayList
+                                                                }
+                                                                mes = String.join("\\n", tempArr);              // combine all lines in the file by \\n which shows up as \n in the messages.csv file
+                                                                // we read it as new line when writing all messages
+                                                                user.updateMessages();
+                                                                ArrayList<Message> temp = user.getMessages();
+                                                                temp.add(new Message(user.getUsername(), listOfUsers[receiveUser - 1], mes));
+                                                                user.setMessages(temp);                  // updates the messages field of the user
+                                                                writer.write(0);
+                                                                writer.flush();
+                                                                writer.write(mes);
+                                                                writer.println();
+                                                                writer.flush();
 
-                                                        } catch (FileNotFoundException e) {         // if user enters file that does not exist
-                                                            writer.write(1);
-                                                            writer.flush();
+                                                            } catch (
+                                                                    FileNotFoundException e) {         // if user enters file that does not exist
+                                                                writer.write(1);
+                                                                writer.flush();
+                                                            }
                                                         }
+                                                        saveMessages(user);
                                                     }
-                                                    saveMessages(user);
                                                 } else if (optionChoice == 1) {          // editing messages
                                                     messageHistory = parseMessageHistory(user, listOfUsers[receiveUser - 1]);
                                                     oos.writeObject(messageHistory);
@@ -771,6 +837,11 @@ public class Server {
                                                     } else if (newAccountInfo.contains("@") && newAccountInfo.contains(".") && !repeat) {
                                                         user.setEmail(newAccountInfo); // if new email is valid changes
                                                         // current user's email to new email
+                                                        for (User u : allUsers) {
+                                                            if (user.getUsername().equals(u.getUsername())) {
+                                                                u = user;
+                                                            }
+                                                        }
                                                         writeUsers("login.csv", allUsers);
                                                     } else if (repeat) {
                                                         newAccountInfo = "";
@@ -790,6 +861,11 @@ public class Server {
                                                 if (newAccountInfo != null) {
                                                     // changes user's password to new password
                                                     user.setPassword(newAccountInfo);
+                                                    for (User u : allUsers) {
+                                                        if (user.getUsername().equals(u.getUsername())) {
+                                                            u = user;
+                                                        }
+                                                    }
                                                     writeUsers("login.csv", allUsers);
                                                 } else {
                                                     break;
@@ -804,6 +880,11 @@ public class Server {
                                         choice = reader.read();
                                         if (choice == 0) {
                                             // user selects Y, their account is deleted (Their messages to other users will remain)
+                                            for (User u : allUsers) {
+                                                if (user.getUsername().equals(u.getUsername())) {
+                                                    u = user;
+                                                }
+                                            }
                                             user.removeUser();
                                             allUsers.remove(user);
                                             choice = 3;
@@ -837,6 +918,12 @@ public class Server {
                                                     writer.write("yes");
                                                     writer.println();
                                                     writer.flush();
+                                                    for (User u : allUsers) {
+                                                        if (user.getUsername().equals(u.getUsername())) {
+                                                            u = user;
+                                                        }
+                                                    }
+                                                    writeUsers("login.csv", allUsers);
                                                 } else {
                                                     // if they don't exist tell user
                                                     writer.write("no");
@@ -858,6 +945,12 @@ public class Server {
                                                         writer.write("yes");
                                                         writer.println();
                                                         writer.flush();
+                                                        for (User u : allUsers) {
+                                                            if (user.getUsername().equals(u.getUsername())) {
+                                                                u = user;
+                                                            }
+                                                        }
+                                                        writeUsers("login.csv", allUsers);
                                                     } else {
                                                         // if they aren't blocked tell user
                                                         writer.write("no");
@@ -868,6 +961,11 @@ public class Server {
                                                 break;
                                             default:
                                                 break;
+                                        }
+                                        for (User u : allUsers) {
+                                            if (user.getUsername().equals(u.getUsername())) {
+                                                u = user;
+                                            }
                                         }
                                         writeUsers("login.csv", allUsers); // writes changes to login.csv file
                                     } else if (choice == 3 && user instanceof Seller) {
@@ -884,6 +982,11 @@ public class Server {
                                         ((Seller) user).createStore(storeName); // adds new store
                                         allStores.add(new Store(storeName, 0));
                                         writeStores("stores.csv", allStores); // updates stores.csv
+                                        for (User u : allUsers) {
+                                            if (user.getUsername().equals(u.getUsername())) {
+                                                u = user;
+                                            }
+                                        }
                                         writeUsers("login.csv", allUsers); // updates login.csv
                                         break;
                                     } else {
@@ -970,7 +1073,7 @@ public class Server {
         email, password, a list of blocked user, if they are a buyer or seller, and sellers will have stores.
         Then assigns users to an arraylist.
      */
-    public static ArrayList<User> readUsers(String filename) throws FileNotFoundException {
+    public synchronized static ArrayList<User> readUsers(String filename) throws FileNotFoundException {
         File f = new File(filename);
         ArrayList<String> lines = new ArrayList<>();
         BufferedReader bfr = null;
@@ -1043,7 +1146,7 @@ public class Server {
         reads the stores.csv file and assigns each line to a Store object. Store object will consist of store name,
         number of times this store was messaged, and users that messaged this store. Then assigns stores to an Arraylist.
      */
-    public static ArrayList<Store> readStores(String filename, ArrayList<User> users) throws FileNotFoundException {
+    public synchronized static ArrayList<Store> readStores(String filename, ArrayList<User> users) throws FileNotFoundException {
         File f = new File(filename);
         ArrayList<String> lines = new ArrayList<>();
         BufferedReader bfr = null;
@@ -1175,7 +1278,7 @@ public class Server {
     }
 
     // Writes stores to stores.csv. writes store names, number of times store was messaged. and users that messaged this store
-    public static void writeStores(String filename, ArrayList<Store> stores) {
+    public synchronized static void writeStores(String filename, ArrayList<Store> stores) {
         File f = new File(filename);
         try (PrintWriter pw = new PrintWriter(new FileOutputStream(f, false))) {
             for (Store s : stores) {
@@ -1275,10 +1378,15 @@ public class Server {
             for (String bUser : blockedUsernames) {
                 u.blockUser(bUser, users);
             }
+            for (User ur : users) {
+                if (!blockedUsernames.contains(ur.getUsername())) {
+                    u.unblockUser(ur.getUsername(), users);
+                }
+            }
         }
     }
 
-    public static void writeUsers(String filename, ArrayList<User> users) {
+    public synchronized static void writeUsers(String filename, ArrayList<User> users) {
         File f = new File(filename);
         try (PrintWriter pw = new PrintWriter(new FileOutputStream(f, false))) {
             for (User u : users) {
