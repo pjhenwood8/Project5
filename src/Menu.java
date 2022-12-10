@@ -884,175 +884,179 @@ public class Menu {
                         case 2:
                             // options for the user's account
                             while (true) {
-                                assert currUser != null;
-                                title = String.format("%s - Account Details%n", currUser.getUsername());
-                                String userInfo = String.format("Email: %s%nPassword: %s%n", email,
-                                        pass);
-                                if (currUser instanceof Seller) {
-                                    // shows 4 options if user is a seller
-                                    options = new String[]{"Edit Account", "Delete Account", "Block/Unblock User", "Create New Store", "Exit"};
+                                if (currUser != null) {
+                                    title = String.format("%s - Account Details%n", currUser.getUsername());
+                                    String userInfo = String.format("Email: %s%nPassword: %s%n", email,
+                                            pass);
+                                    if (currUser instanceof Seller) {
+                                        // shows 4 options if user is a seller
+                                        options = new String[]{"Edit Account", "Delete Account", "Block/Unblock User", "Create New Store", "Exit"};
 
-                                } else {
-                                    // shows 3 options if user is a buyer
-                                    options = new String[]{"Edit Account", "Delete Account", "Block/Unblock User", "Exit"};
-                                }
-                                choice = JOptionPane.showOptionDialog(null, userInfo + "Please choose an option " +
-                                                "to proceed", title, JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE,
-                                        null, options, options[0]);
-                                pwServer.write(choice);
-                                pwServer.flush();
-                                if (choice == 0) {
-                                    // user selects edit account
-                                    options = new String[]{"Change Email", "Change Password", "Exit"};
-                                    choice = JOptionPane.showOptionDialog(null, "Choose an option to proceed"
-                                            , title, JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE,
-                                            null, options, options[2]);
-                                    String newAccountInfo;
-                                    pwServer.write(choice);
-                                    pwServer.flush();
-                                    switch (choice) {
-                                        case 0:
-                                            // user selects change email
-                                            do {
-                                                // user types new email
-                                                newAccountInfo = JOptionPane.showInputDialog(null,
-                                                        "Enter new email: ", title, JOptionPane.PLAIN_MESSAGE);
-                                                pwServer.write(newAccountInfo);
-                                                pwServer.println();
-                                                pwServer.flush();
-
-                                                newAccountInfo = bfrServer.readLine();
-                                                if (newAccountInfo.isEmpty()) {
-                                                    JOptionPane.showMessageDialog(null, "That email was not valid\n " +
-                                                                    "(Email didn't contain an @ and . or email was " +
-                                                                    "already in use", "title", JOptionPane.WARNING_MESSAGE);
-                                                }
-                                            } while (newAccountInfo.isEmpty());
-                                            // shows that the user's email was changed
-                                            JOptionPane.showMessageDialog(null, String.format("Email " +
-                                                    "changed to: %s%n", newAccountInfo), title, JOptionPane.INFORMATION_MESSAGE);
-                                            email = newAccountInfo;
-                                            break;
-                                        case 1:
-                                            // user selects change password
-                                            // user types new password
-                                            newAccountInfo = JOptionPane.showInputDialog(null,
-                                                    "Enter new password: ", title, JOptionPane.PLAIN_MESSAGE);
-                                            pwServer.write(newAccountInfo);
-                                            pwServer.println();
-                                            pwServer.flush();
-                                            if (newAccountInfo != null) {
-                                                // changes user's password to new password
-                                                currUser.setPassword(newAccountInfo);
-                                                // shows that the user's password was changed
-                                                JOptionPane.showMessageDialog(null, String.format("Password " +
-                                                        "changed to: %s%n", newAccountInfo), title, JOptionPane.INFORMATION_MESSAGE);
-                                                pass = newAccountInfo;
-                                            } else {
-                                                break;
-                                            }
-                                            break;
-                                        default:
-                                            break;
+                                    } else {
+                                        // shows 3 options if user is a buyer
+                                        options = new String[]{"Edit Account", "Delete Account", "Block/Unblock User", "Exit"};
                                     }
-                                } else if (choice == 1) {
-                                    // user selects delete account
-                                    options = new String[]{"Yes", "No"};
-                                    // makes sure user wants to delete their account
-                                    choice = JOptionPane.showOptionDialog(null, "Are you sure you want to " +
-                                                    "delete this user?", title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+                                    choice = JOptionPane.showOptionDialog(null, userInfo + "Please choose an option " +
+                                                    "to proceed", title, JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE,
                                             null, options, options[0]);
                                     pwServer.write(choice);
                                     pwServer.flush();
                                     if (choice == 0) {
-                                        // user selects Y, their account is deleted (Their messages to other users will remain)
-                                        JOptionPane.showMessageDialog(null, String.format("User [%s] " +
-                                                        "successfully deleted%n", currUser.getUsername()), title,
-                                                JOptionPane.INFORMATION_MESSAGE);
-                                        currUser.removeUser();
-                                        choice = 3;
-                                        currUser = null;
-                                    }
-                                } else if (choice == 2) {
-                                    // user selects block/unblock users
-                                    String blockedUsers = bfrServer.readLine().replaceAll("\\\\n","\n");
-                                    // Asks if user wants to block or unblock a user
-                                    options = new String[]{"Block New User", "Unblock User", "Exit"};
-                                    choice = JOptionPane.showOptionDialog(null, blockedUsers, title,
-                                            JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options,
-                                            options[2]);
-                                    pwServer.write(choice);
-                                    pwServer.flush();
-                                    switch (choice) {
-                                        case 0:
-                                            // user selects block user
-                                            String blockUsername = (String) JOptionPane.showInputDialog(null, "Enter name" +
-                                                    " of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null,
-                                                    userArr, userArr[0]);
-                                            pwServer.write(blockUsername);
-                                            pwServer.println();
-                                            pwServer.flush();
-                                            // user enters username of user to block
-                                            if (blockUsername == null) {
+                                        // user selects edit account
+                                        options = new String[]{"Change Email", "Change Password", "Exit"};
+                                        choice = JOptionPane.showOptionDialog(null, "Choose an option to proceed"
+                                                , title, JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE,
+                                                null, options, options[2]);
+                                        String newAccountInfo;
+                                        pwServer.write(choice);
+                                        pwServer.flush();
+                                        switch (choice) {
+                                            case 0:
+                                                // user selects change email
+                                                do {
+                                                    // user types new email
+                                                    newAccountInfo = JOptionPane.showInputDialog(null,
+                                                            "Enter new email: ", title, JOptionPane.PLAIN_MESSAGE);
+                                                    pwServer.write(newAccountInfo);
+                                                    pwServer.println();
+                                                    pwServer.flush();
+
+                                                    newAccountInfo = bfrServer.readLine();
+                                                    if (newAccountInfo.isEmpty()) {
+                                                        JOptionPane.showMessageDialog(null, "That email was not valid\n " +
+                                                                "(Email didn't contain an @ and . or email was " +
+                                                                "already in use", "title", JOptionPane.WARNING_MESSAGE);
+                                                    }
+                                                } while (newAccountInfo.isEmpty());
+                                                // shows that the user's email was changed
+                                                JOptionPane.showMessageDialog(null, String.format("Email " +
+                                                        "changed to: %s%n", newAccountInfo), title, JOptionPane.INFORMATION_MESSAGE);
+                                                email = newAccountInfo;
                                                 break;
-                                            }
-                                            String action = bfrServer.readLine();
-                                            if (action.equals("yes")) {
-                                                // if that user exist they are blocked
-                                                JOptionPane.showMessageDialog(null, blockUsername + " blocked",
-                                                        title, JOptionPane.INFORMATION_MESSAGE);
-                                            } else {
-                                                // if they are already blocked tell user
-                                                JOptionPane.showMessageDialog(null, "That user is already blocked",
-                                                        title, JOptionPane.WARNING_MESSAGE);
-                                            }
-                                            break;
-                                        case 1:
-                                            // user select unblock user
-                                            String[] blockedUsersArr = (String[]) ois.readObject();
-                                            if (blockedUsersArr.length > 0) {
-                                                String unblockUsername = (String) JOptionPane.showInputDialog(null, "Enter " +
-                                                                "name of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null,
-                                                        blockedUsersArr, blockedUsersArr[0]);
-                                                pwServer.write(unblockUsername);
+                                            case 1:
+                                                // user selects change password
+                                                // user types new password
+                                                newAccountInfo = JOptionPane.showInputDialog(null,
+                                                        "Enter new password: ", title, JOptionPane.PLAIN_MESSAGE);
+                                                pwServer.write(newAccountInfo);
                                                 pwServer.println();
                                                 pwServer.flush();
-                                                // user enters username of user to unblock
-                                                if (unblockUsername == null) {
+                                                if (newAccountInfo != null) {
+                                                    // changes user's password to new password
+                                                    currUser.setPassword(newAccountInfo);
+                                                    // shows that the user's password was changed
+                                                    JOptionPane.showMessageDialog(null, String.format("Password " +
+                                                            "changed to: %s%n", newAccountInfo), title, JOptionPane.INFORMATION_MESSAGE);
+                                                    pass = newAccountInfo;
+                                                } else {
                                                     break;
                                                 }
-                                                action = bfrServer.readLine();
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    } else if (choice == 1) {
+                                        // user selects delete account
+                                        options = new String[]{"Yes", "No"};
+                                        // makes sure user wants to delete their account
+                                        choice = JOptionPane.showOptionDialog(null, "Are you sure you want to " +
+                                                        "delete this user?", title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+                                                null, options, options[0]);
+                                        pwServer.write(choice);
+                                        pwServer.flush();
+                                        if (choice == 0) {
+                                            // user selects Y, their account is deleted (Their messages to other users will remain)
+                                            JOptionPane.showMessageDialog(null, String.format("User [%s] " +
+                                                            "successfully deleted%n", currUser.getUsername()), title,
+                                                    JOptionPane.INFORMATION_MESSAGE);
+                                            currUser.removeUser();
+                                            choice = 3;
+                                            currUser = null;
+                                            loggedIn = false;
+                                        }
+                                    } else if (choice == 2) {
+                                        // user selects block/unblock users
+                                        String blockedUsers = bfrServer.readLine().replaceAll("\\\\n", "\n");
+                                        // Asks if user wants to block or unblock a user
+                                        options = new String[]{"Block New User", "Unblock User", "Exit"};
+                                        choice = JOptionPane.showOptionDialog(null, blockedUsers, title,
+                                                JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options,
+                                                options[2]);
+                                        pwServer.write(choice);
+                                        pwServer.flush();
+                                        switch (choice) {
+                                            case 0:
+                                                // user selects block user
+                                                String blockUsername = (String) JOptionPane.showInputDialog(null, "Enter name" +
+                                                                " of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null,
+                                                        userArr, userArr[0]);
+                                                pwServer.write(blockUsername);
+                                                pwServer.println();
+                                                pwServer.flush();
+                                                // user enters username of user to block
+                                                if (blockUsername == null) {
+                                                    break;
+                                                }
+                                                String action = bfrServer.readLine();
                                                 if (action.equals("yes")) {
-                                                    // if that user is currently blocked they are unblocked
-                                                    JOptionPane.showMessageDialog(null, unblockUsername + " unblocked",
+                                                    // if that user exist they are blocked
+                                                    JOptionPane.showMessageDialog(null, blockUsername + " blocked",
                                                             title, JOptionPane.INFORMATION_MESSAGE);
                                                 } else {
-                                                    // if they aren't blocked tell user
-                                                    JOptionPane.showMessageDialog(null, "That user is not blocked",
-                                                            title, JOptionPane.INFORMATION_MESSAGE);
+                                                    // if they are already blocked tell user
+                                                    JOptionPane.showMessageDialog(null, "That user is already blocked",
+                                                            title, JOptionPane.WARNING_MESSAGE);
                                                 }
-                                            } else {
-                                                JOptionPane.showMessageDialog(null, "This user has no other users " +
-                                                        "blocked", title, JOptionPane.WARNING_MESSAGE);
-                                            }
-                                            break;
-                                        default:
-                                            break;
-                                    }
-                                } else if (choice == 3 && currUser instanceof Seller) {
-                                    String storeName;
-                                    String userStores = bfrServer.readLine().replaceAll("\\\\n", "\n");
-                                    do {
-                                        // if user is seller allow user to create store
-                                         storeName = JOptionPane.showInputDialog(null,
-                                                userStores, title, JOptionPane.QUESTION_MESSAGE);
-                                    } while (storeName == null);
+                                                break;
+                                            case 1:
+                                                // user select unblock user
+                                                String[] blockedUsersArr = (String[]) ois.readObject();
+                                                if (blockedUsersArr.length > 0) {
+                                                    String unblockUsername = (String) JOptionPane.showInputDialog(null, "Enter " +
+                                                                    "name of user to block: ", title, JOptionPane.PLAIN_MESSAGE, null,
+                                                            blockedUsersArr, blockedUsersArr[0]);
+                                                    pwServer.write(unblockUsername);
+                                                    pwServer.println();
+                                                    pwServer.flush();
+                                                    // user enters username of user to unblock
+                                                    if (unblockUsername == null) {
+                                                        break;
+                                                    }
+                                                    action = bfrServer.readLine();
+                                                    if (action.equals("yes")) {
+                                                        // if that user is currently blocked they are unblocked
+                                                        JOptionPane.showMessageDialog(null, unblockUsername + " unblocked",
+                                                                title, JOptionPane.INFORMATION_MESSAGE);
+                                                    } else {
+                                                        // if they aren't blocked tell user
+                                                        JOptionPane.showMessageDialog(null, "That user is not blocked",
+                                                                title, JOptionPane.INFORMATION_MESSAGE);
+                                                    }
+                                                } else {
+                                                    JOptionPane.showMessageDialog(null, "This user has no other users " +
+                                                            "blocked", title, JOptionPane.WARNING_MESSAGE);
+                                                }
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    } else if (choice == 3 && currUser instanceof Seller) {
+                                        String storeName;
+                                        String userStores = bfrServer.readLine().replaceAll("\\\\n", "\n");
+                                        do {
+                                            // if user is seller allow user to create store
+                                            storeName = JOptionPane.showInputDialog(null,
+                                                    userStores, title, JOptionPane.QUESTION_MESSAGE);
+                                        } while (storeName == null);
                                         pwServer.write(storeName);
                                         pwServer.println();
                                         pwServer.flush();
                                         JOptionPane.showMessageDialog(null, "Store " + storeName + " was added",
                                                 title, JOptionPane.INFORMATION_MESSAGE);
-                                    break;
+                                        break;
+                                    } else {
+                                        break;
+                                    }
                                 } else {
                                     break;
                                 }
