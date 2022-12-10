@@ -871,38 +871,13 @@ public class Menu {
                                                 null, options, options[3]);
                                 pwServer.write(alphabetical);
                                 pwServer.flush();
-                                if (currUser instanceof Buyer) {
-                                    if (alphabetical == 0) {
-                                        String stats = bfrServer.readLine().replaceAll("\\\\n","\n");
-                                        // shows user statistics in alphabetical order
-                                        JOptionPane.showMessageDialog(null, stats, title, JOptionPane.INFORMATION_MESSAGE);
-                                    }
-                                    else if (alphabetical == 1) {
-                                        String stats = bfrServer.readLine().replaceAll("\\\\n","\n");
-                                        // shows user statistics in reverse alphabetical order
-                                        JOptionPane.showMessageDialog(null, stats, title, JOptionPane.INFORMATION_MESSAGE);
-                                    }
-                                    else if (alphabetical == 2) {
-                                        String commonWords = bfrServer.readLine().replaceAll("\\\\n", "\n");
-                                        JOptionPane.showMessageDialog(null, commonWords, title, JOptionPane.INFORMATION_MESSAGE);
-                                    } else {
-                                        break;
-                                    }
-                                } else if (currUser instanceof Seller) {
-                                    if (alphabetical == 0) {
-                                        String sortMessages = bfrServer.readLine().replaceAll("\\\\n", "\n");
-                                        JOptionPane.showMessageDialog(null, sortMessages, title,
-                                                JOptionPane.INFORMATION_MESSAGE);
-                                    } else if (alphabetical == 1) {
-                                        String sortMessages = bfrServer.readLine().replaceAll("\\\\n", "\n");
-                                        JOptionPane.showMessageDialog(null, sortMessages, title,
-                                                JOptionPane.INFORMATION_MESSAGE);
-                                    } else if (alphabetical == 2) {
-                                        String commonWords = bfrServer.readLine().replaceAll("\\\\n", "\n");
-                                        JOptionPane.showMessageDialog(null, commonWords, title, JOptionPane.INFORMATION_MESSAGE);
-                                    } else {
-                                        break;
-                                    }
+                                if (alphabetical == 0 || alphabetical == 1 || alphabetical == 2) {
+                                    String stats = bfrServer.readLine().replaceAll("\\\\n","\n");
+                                    // shows user statistics in alphabetical order & reverse alphabetical order
+                                    JOptionPane.showMessageDialog(null, stats, title,
+                                            JOptionPane.INFORMATION_MESSAGE);
+                                } else {
+                                    break;
                                 }
                             }
                             break;
